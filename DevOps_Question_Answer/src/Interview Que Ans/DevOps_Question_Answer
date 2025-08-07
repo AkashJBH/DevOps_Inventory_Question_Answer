@@ -1,0 +1,166 @@
+Azure
+1.	How can I attach a Subnet to a VM?
+2.	How can I attach a Subnet to an NSG?
+3.	What is AKS. (AKS related questions)
+4.	Azure NSG (NW Security Group).
+5.	What is NAT gateway?
+6.	Azure DNS & Networking.
+7.	Types of files that can be stored in Azure storage or types of Azure Storages
+8.	How to setup Azure Pipeline (Access Control, Service Principal, different stages, build activities, parallel stages, Artifacts (types & how/where to store), post build activities, Agent Pool, etc)
+9.	How to clone a VM to another region?
+10.	How to configure Azure PL in such a way that it automatically runs the relevant build steps (Java/C#/Python/Node/etc) based on the changes made in the repo having different code?
+11.	What are Deployment Groups and Releases in Azure PLs & can they be the same?
+12.	What are Deployment Slots in Azure Functions Apps/Containers?
+13.	How to setup the connection to Azure in Azure DevOps PL?
+14.	What are variables in Azure PLs?
+15.	What is CIDR Range and how is it calculated?
+16.	How can I restrict an Enterprise application to access resources of a particular RG? How can I make sure that my users have access to that Application only?
+17.	How can I sync data between two MongoDB/PostgresDB instances, one running on Azure VM and the other on AWS EC2?
+18.	Azure Data Lake.
+19.	How can my application authenticate to Azure to access storage? (Explain multiple ways and steps)
+20.	How to provide accesses (resource permissions) to an SP in Azure?
+21.	Error handling in Logic Apps. Ways to trigger Logic Apps and Azure functions?
+22.	Trigger vs Action in Logic Apps. Logic App use cases
+23.	LRS, GRS, ZRS, GZRS
+24.	Load Balancer vs Application Gateway
+25.	What are Quality gates in Azure DevOps Pipelines?
+26.	What is a Release Pipeline in Azure DevOps?
+27.	Write Azure PL to deploy multiple VMs with different regions, SKUs, etc. It should be created with terraform and should be deployed via a single TF apply.
+28.	How can I monitor multiple Azure functions automatically?
+29.
+
+AWS
+1.	How can I copy an EBS volume from one region to another?
+2.	What are S3 Lifecycles Policies?
+3.	What is the most imp part of a VPC? How to create a VPC? And why is it used?
+4.	What is the diff between Public/Private Subnet and how do I create a Public/Private Subnet?
+5.	Where to locate a Subnet in AWS?
+6.	What is Internet gateway? Difference b/w AWS Internet GW and Azure NAT GW?
+7.	Diff types of AWS Load Balancers and their use cases.
+8.	AWS Route 53 (DNS)
+9.	How to clone an EC2 to another region?
+10.	What is peering?
+11.	What is CIDR Range and how is it calculated?
+12.	How can EC2 created in different regions via CFT connect with each other?
+13.	How to access AWS resources from EC2 instance without storing any credential on my EC2 instance?
+14.	Approach to deploy an application solution using S3, EC2, Load Balancer & Auto-scaling.
+15.	How is CFT used to maintain consistency and reproducibility?
+16.
+
+Terraform
+1.	Use of the count variable in TF.
+2.	How to create multiple resources with numbered naming in TF? (count variable)
+3.	How to update the config of a resource based on its tag values.
+Example: I created 10 VMs using a loop. Now I want to update the storage and images of VM #3,8 to new values. How can I achieve this using their tags? How to stop a resource from getting updated based on its tags?
+4.	How to get the details of a pre-existing resource from cloud in TF and use it?
+5.	How to provide values to a TF variable explicitly at run time (to a variable that already has a default or set value in the TF files)?
+6.	What does TF init actually do? TF init vs TF plan.
+7.	What is the purpose of the TF state file?
+8.	How to recover a deleted TF state file?
+9.	Different parameters passed to certain TF resources (Ex: Azure VM, VPC, Subnet or AWS EC2, S3, etc)
+10.	What is the use-case of modules in TF?
+11.	What is a workspace in TF?
+12.	How to merge manually created resources in cloud to the TF config file?
+13.	What are the state commands? What does TF state move do?
+14.	What is a Dynamic block in TF?
+15.	How to pass/store sensitive info like password/keys in terraform?
+16.	How to validate a TF file?
+17.	How to make sure that a resource is created only after the previous resource was created successfully or after the previous step was successful if TF?
+18.	What is the AzureRM value you’re using?
+19.	How to connect to Azure for terraform without storing any kind of credentials on the machine?
+20.	How does TF support immutable infrastructure?
+21.	How to handle multiple developers working with same Centralized TF state file simultaneously?
+22.	How to configure multiples providers in such a way that the same TF file can deploy resources in multiple AWS regions or even multiple AWS Accounts?
+23.	Pro/Cons of IoC
+24.
+
+Jenkins
+1.	What is the structure of a Jenkins file?
+2.	How to use variables in Jenkins?
+3.	What are the different stages in Jenkins?
+4.	Access Control in Jenkins (Ex: One person shouldn’t be able to execute/update the pipeline of another user)
+5.	Access Control in Jenkins.
+6.	Jenkins server setup.
+7.	How to run parallel repo cloning (or anything) steps in Jenkins Pipeline?
+8.	Explain a Jenkins CI/CD PL e2e.
+9.	Types of parameters in Jenkins
+10.	How can I add new Windows/Linux node in Jenkins?
+11.	What are shared libraries and why/how are they useful?
+12.	How to configure Git in Jenkins?
+13.
+
+Docker / Kubernetes
+1.	What is a volume in Docker and how can I attach one in a docker container & K8?
+2.	How to create a volume in Docker & K8?
+3.	What is namespace in K8?
+4.	How can I create a new node in K8 via command?
+5.	What are the contents of a Dockerfile?
+6.	Dockerfile vs Docker compose
+7.	How do you create a Dockerfile for any application deployment?
+8.	Explain k8 architecture.
+9.	Difference between k8 deployment and stateful set.
+10.	Difference between k8 deployment and replica set. How do different deployments work?
+11.	What is k8 services and explain its types.
+12.	What is PVC (Persistent Volume Claim)?
+13.	What is ingress? Ingress vs Load Balancer.
+14.	What is liveness and readiness probes in k8?
+15.	Taint & Tolerations. What is node affinity?
+16.	If there are multiple pods in multi nodes in which an application is deployed for high availability, then how can we connect those pods using single endpoint.
+17.	Troubleshooting steps in K8.
+18.	What is Istio in K8?
+19.	Kind of Pods in K8?
+20.	Docker Layer vs Docker image?
+21.	How to expose Docker application to internet?
+22.	Is it recommended to use large size Docker images, say 5+ GB?
+23.	Troubleshoot a K8 pod stuck in pending state.
+24.	How can I describe everything about a K8 Pod [-o wide]?
+25.	How to troubleshoot failing pods in Replica Sets?
+26.	Scaling a K8 deployment automatically &manually?
+27.	Benefits of Microservices & Containerization.
+28.	Can we spin up a Windows container on top of Linux OS or vice-versa?
+29.	How to deploy a Dockerfile using non-root user?
+30.	Does K8 provide high availability by default?
+31.
+
+Python
+1.	What is the purpose of __init__ method in python?
+2.	Multithreading in python and how you implemented it in your project?
+3.	Exception Handling.
+4.	What is a module in python?
+5.	How can I acquire the Google Cache Age of any URL using Python?
+6.	Negative indexes and its uses.
+7.	What is Monkey Patching in Python?
+8.
+
+Coding and Other
+1.	Different ways to migrate DB from one server to another?
+2.	Different ways to backup DB?
+3.	What is the name of the default schema in SQL/Postgres DB?
+4.	What is the type of the DM backup file?
+5.	How can I sync data between two MongoDB/PostgreDB instances, one running on Azure VM and the other on AWS EC2?
+6.	DB Administration. DB server level Access Control mechanisms.
+7.	Different Access control mechanisms for a DB at DB level.
+8.	Break vs Continue
+9.	Find a keyword in all files, replace it with another value and auto save all the files in shell script.
+10.	Different Testing Techniques.
+11.	How to implement SonarQube in DevOps CI/CD?
+12.	What is Open VPN?
+13.	Different ways to scan my code/images.
+14.	How to enforce a template for Git commit messages?
+15.	How to read and update a json file in Linux using script?
+16.	DevSecvOps
+17.	How to pass command line args in shell script and how to read those in the script?
+18.	Error handling in shell script. = vs ==
+19.	$$, $*, $#, $?
+20.	How to read input variable from user in shell script?
+21.	Approach to setup a Pipeline for .Net/Java/Python application in and CI/CD
+22.	How would you approach to create a CI/CD PL for multiple projects?
+23.	How would you approach to migrate On-Prem application to Cloud?
+24.	How to troubleshoot a failed Pipeline?
+25.	API verbs? How to pass payload to an API?
+26.	What is a Middleware?
+27.	Dependency Injection vs Dependency Inversion vs Inversion of Control.
+28.	SOLID Principles & Design Patterns
+29.	Thready Safety in Singleton and its implementation
+30.	How to call an API? What is needed while calling an API (necessary vs optional things)
+31.

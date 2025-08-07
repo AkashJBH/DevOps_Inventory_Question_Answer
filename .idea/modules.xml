@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/DevOps_Inventory_Question_Answer.iml" filepath="$PROJECT_DIR$/.idea/DevOps_Inventory_Question_Answer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/DevOps_Question_Answer/DevOps_Question_Answer.iml" filepath="$PROJECT_DIR$/DevOps_Question_Answer/DevOps_Question_Answer.iml" />
+    </modules>
+  </component>
+</project>
