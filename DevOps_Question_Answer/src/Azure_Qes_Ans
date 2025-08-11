@@ -1458,4 +1458,5 @@ Diagnostic settings are enabled
 Alerts are in place
 
 📌 Summary for Interview:
-“To monitor multiple Azure Functions automatically, I would leverage Application Insights and Azure Monitor with centralized dashboards, alerting, and integration into Azure DevOps pipelines. I'd automate the setup using Bicep or Terraform to ensure consistency across environments, and use Log Analytics for deep querying and correlation.”
+“To monitor multiple Azure Functions automatically, I would leverage Application Insights and Azure Monitor with centralized dashboards, alerting, and integration into Azure DevOps pipelines.
+I'd automate the setup using Bicep or Terraform to ensure consistency across environments, and use Log Analytics for deep querying and correlation.”
