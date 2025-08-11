@@ -1,0 +1,794 @@
+1.	Use of the count variable in TF.
+
+In TensorFlow, the term "count variable" can mean different things depending on the context of the interview question — so you need to clarify whether they mean:
+a loop counter (Python-side variable during TensorFlow ops)
+a tf.Variable that counts occurrences/events
+a specific TensorFlow function’s count parameter (like in tf.repeat or tf.nn.top_k)
+or a training step counter (common in model training).
+
+Likely Interview Interpretations
+1️⃣ Count variable as a training step counter
+In TensorFlow’s training loops, a count or global_step variable is often used to track how many training steps have occurred.
+Example:
+python
+Copy
+Edit
+global_step = tf.Variable(0, trainable=False, dtype=tf.int64)
+for batch in dataset:
+    # Training step...
+    global_step.assign_add(1)
+Use:
+Logging and monitoring
+Learning rate scheduling (e.g., decay after a number of steps)
+Checkpoint naming and restoration
+
+2️⃣ Count variable in loops (tf.while_loop)
+TensorFlow graphs can’t use normal Python variables for counting inside a loop; you need a TensorFlow tensor or variable as a counter.
+python
+Copy
+Edit
+i = tf.constant(0)
+c = lambda i: tf.less(i, 10)
+b = lambda i: tf.add(i, 1)
+result = tf.while_loop(c, b, [i])
+Here, i is the count variable controlling loop iterations.
+
+3️⃣ Count variable in metrics / accumulators
+For example, when using tf.metrics.Mean, TensorFlow internally uses a count variable to store how many updates have been added so far:
+python
+Copy
+Edit
+metric = tf.metrics.Mean()
+metric.update_state([1, 2, 3])
+print(metric.count.numpy())  # The count variable tracks number of values seen
+Use: Keeps track of number of samples processed so that averages can be computed correctly.
+
+4️⃣ Count parameter in specific APIs
+Some TF functions literally take a count argument, like:
+tf.repeat(tensor, repeats, axis)
+tf.random.stateless_binomial(count=...)
+tf.data.Dataset.take(count)
+
+✅ Short interview answer:
+
+The “count variable” in TensorFlow generally refers to a variable or tensor used to keep track of iterations, steps, or accumulated values inside a graph.
+It’s often used in training loops (global_step), in metrics (to compute averages), and inside tf.while_loop for controlling execution.
+Since TensorFlow builds computation graphs, you can’t use a plain Python integer; you need a TensorFlow variable or tensor so it’s part of the graph.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+2.	How to create multiple resources with numbered naming in TF? (count variable)
+
+In Terraform (TF), if you want to create multiple resources with numbered names using a count variable, you use the count meta-argument along with count.index.
+Here’s the basic approach you’d explain in an Azure DevOps interview:
+Example: Creating Multiple Azure Storage Accounts with Numbered Names
+hcl
+Copy
+Edit
+variable "resource_count" {
+  description = "Number of resources to create"
+  default     = 3
+}
+
+resource "azurerm_storage_account" "example" {
+  count                    = var.resource_count
+  name                     = "storacc${count.index + 1}" # numbered names
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "rg-tf-example"
+  location = "East US"
+}
+Key Points to Explain in Interview
+count meta-argument
+Tells Terraform how many instances of the resource to create.
+Value usually comes from a variable (var.resource_count).
+count.index
+Zero-based index for each created resource.
+If you want numbering to start from 1, use ${count.index + 1}.
+Naming pattern
+Append the index to make names unique:
+"storacc${count.index + 1}"
+Azure-specific constraints
+Azure storage account names must be globally unique, lowercase, and without special characters. You may need a prefix/suffix for uniqueness.
+💡 Pro tip for interviews:
+Also mention for_each as an alternative when working with named sets or maps, since count is for simple index-based creation.
+For example:
+hcl
+Copy
+Edit
+for_each = toset(["dev", "test", "prod"])
+name     = "storacc-${each.key}"
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+3.	How to update the config of a resource based on its tag values.
+Example: I created 10 VMs using a loop. Now I want to update the storage and images of VM #3,8 to new values.
+How can I achieve this using their tags? How to stop a resource from getting updated based on its tags?
+
+This sounds like an Azure DevOps + Infrastructure as Code interview question, and the intent is to check whether you understand:
+How to target specific resources based on tags.
+How to control conditional updates during a deployment.
+Let’s break this down step-by-step.
+
+Scenario Recap
+You provisioned 10 VMs in Azure (probably via ARM/Bicep/Terraform) in a loop.
+You want to update storage & image for VM #3 and VM #8 only.
+Selection should be based on tags, not hard-coded names.
+You also want to skip updating some resources based on tags.
+
+Key Concepts
+Tags as selectors
+Azure resources can be queried and filtered by tags.
+Example: Environment=Dev, Update=true.
+
+Conditional deployment
+ARM, Bicep, Terraform, and even Azure CLI support conditional logic to only act on certain resources.
+
+Idempotence
+Infrastructure-as-Code (IaC) tools will only apply changes to resources that meet your conditions.
+
+Possible Approaches
+1. Using Bicep/ARM with if condition
+You can check a resource's tag value at deployment time and decide whether to update it.
+bicep
+Copy
+Edit
+param vmTagSelector string = 'Update'
+param vmTagValue string = 'true'
+resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = if (tags[vmTagSelector] == vmTagValue) {
+  name: 'myVM'
+  location: resourceGroup().location
+  tags: {
+    Update: 'true'
+  }
+  properties: {
+    hardwareProfile: {
+      vmSize: 'Standard_DS2_v2'
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'Canonical'
+        offer: 'UbuntuServer'
+        sku: '18.04-LTS'
+        version: 'latest'
+      }
+    }
+  }
+}
+How this works:
+The if block prevents deployment if the tag doesn’t match.
+Only VMs with Update=true tag will be updated.
+VM #3 and #8 can have that tag set.
+
+2. Using Terraform for_each + tag filter
+If using Terraform:
+hcl
+Copy
+Edit
+locals {
+  vms_to_update = {
+    for k, v in azurerm_virtual_machine.vms :
+    k => v
+    if lookup(v.tags, "Update", "false") == "true"
+  }
+}
+resource "azurerm_virtual_machine" "update_vms" {
+  for_each = local.vms_to_update
+
+  name                  = each.value.name
+  resource_group_name   = each.value.resource_group_name
+  location              = each.value.location
+  vm_size               = "Standard_DS2_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+}
+How this works:
+Filters only the VMs that have the Update=true tag.
+Terraform will only touch those resources in the plan.
+
+3. Using Azure CLI / PowerShell Tag Query
+You could run a command before deployment to list only matching resources:
+bash
+Copy
+Edit
+az resource list --tag Update=true --query "[].name" -o tsv
+Then loop through the names and update only those.
+For skipping updates:
+Give those resources a tag like DoNotUpdate=true and add a condition to your pipeline to skip them.
+
+How to Stop a Resource from Being Updated
+Add a "freeze" tag and filter it out:
+Bicep Example:
+bicep
+Copy
+Edit
+if (tags['DoNotUpdate'] != 'true') {
+   // update resource
+}
+
+Terraform Example:
+hcl
+Copy
+Edit
+if lookup(v.tags, "DoNotUpdate", "false") != "true"
+
+✅ Interview Key Points to Mention:
+Always use tag-based filtering to avoid hard-coded names.
+Use conditional deployment logic (if in Bicep, for_each filtering in Terraform).
+Have a skip-update tag for production safety.
+You can combine IaC conditions with Azure CLI tag queries in your DevOps pipeline.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+4.	How to get the details of a pre-existing resource from cloud in TF and use it?
+
+Ah, this is a Terraform import + data source kind of question.
+If in an Azure DevOps + Terraform interview they ask "How do you get the details of a pre-existing resource from the cloud and use it?", they’re testing whether you know:
+How to bring an already-existing resource into Terraform’s state (without recreating it)
+Or how to reference an existing resource without importing it.
+
+Two main approaches
+1. If you want Terraform to manage it going forward → terraform import
+This is used when the resource exists in Azure but Terraform doesn’t know about it yet.
+Steps:
+Write the Terraform configuration block for the resource (matching the actual cloud resource settings as closely as possible).
+Run:
+bash
+Copy
+Edit
+terraform import <resource_type>.<resource_name> <resource_id>
+Example:
+bash
+Copy
+Edit
+terraform import azurerm_resource_group.example /subscriptions/1234/resourceGroups/my-rg
+Terraform will link the real resource to your state file.
+Run:
+bash
+Copy
+Edit
+terraform plan
+to check for any drift.
+
+2. If you only want to read its details without managing it → data source
+This is for using existing resources as inputs without importing them.
+Example:
+hcl
+Copy
+Edit
+data "azurerm_resource_group" "existing_rg" {
+  name = "my-rg"
+}
+output "rg_location" {
+  value = data.azurerm_resource_group.existing_rg.location
+}
+Here Terraform fetches the resource info at plan/apply time from Azure and makes it available for other resources.
+
+When to use which
+Import → You want Terraform to take over management of that resource.
+Data source → You just need its details (location, ID, tags, etc.) to build or link other resources.
+
+In Azure DevOps pipeline
+The steps are essentially the same:
+Add the Terraform code to the repo.
+Use Azure DevOps pipeline stages:
+terraform init
+terraform import (if needed, could be manual before pipeline runs)
+terraform plan / apply
+Make sure your service principal in Azure DevOps has permission to read the existing resource.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+5.	How to provide values to a TF variable explicitly at run time (to a variable that already has a default or set value in the TF files)?
+
+📌 In Terraform
+A variable can have:
+Default value — set in .tf files (variable "foo" { default = "bar" }).
+Overridden value — given at runtime, which takes precedence over the default.
+Terraform gives multiple ways to provide runtime values:
+
+1. Using -var in the CLI
+sh
+Copy
+Edit
+terraform apply -var="my_var=my_value"
+This directly overrides whatever default value is in the .tf file.
+
+2. Using a .tfvars file
+sh
+Copy
+Edit
+# myvars.tfvars
+my_var = "my_value"
+Run:
+
+sh
+Copy
+Edit
+terraform apply -var-file="myvars.tfvars"
+3. Using Environment Variables
+Terraform reads environment variables that follow:
+
+php-template
+Copy
+Edit
+TF_VAR_<variable_name>
+Example:
+
+sh
+Copy
+Edit
+export TF_VAR_my_var="my_value"
+terraform apply
+
+📌 In Azure DevOps
+In Azure DevOps pipelines, you can override Terraform variables at runtime in a few ways:
+
+Option 1: Pass via -var in the pipeline step
+yaml
+Copy
+Edit
+- task: TerraformCLI@0
+  inputs:
+    command: apply
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+    commandOptions: >
+      -var="my_var=$(Build.SourceBranchName)"
+Option 2: Use TF_VAR_ environment variables in pipeline
+yaml
+Copy
+Edit
+variables:
+  TF_VAR_my_var: "overridden_value"
+
+- task: TerraformCLI@0
+  inputs:
+    command: apply
+Terraform will automatically pick it up.
+
+Option 3: Use a .tfvars file generated during the pipeline
+yaml
+Copy
+Edit
+- script: |
+    echo "my_var = \"$(Build.SourceVersion)\"" > pipeline.tfvars
+    terraform apply -var-file="pipeline.tfvars"
+
+📌 Key Interview Point
+If a variable already has a default value in Terraform code, you can still explicitly override it at runtime using:
+-var flag
+-var-file
+TF_VAR_ environment variables
+In Azure DevOps, this is typically done using pipeline variables, environment variables, or generating .tfvars files in the pipeline.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+6.	What does TF init actually do? TF init vs TF plan.
+
+In the context of Terraform (often used in Azure DevOps pipelines for infrastructure provisioning), the interview question is about understanding the role of terraform init vs terraform plan.
+Let’s break them down clearly:
+
+terraform init
+Purpose: Prepares your working directory so Terraform can run.
+What it actually does:
+Initializes the backend
+Configures remote or local state storage (e.g., Azure Storage Account if using Azure backend).
+Downloads providers
+Retrieves the required plugins (e.g., azurerm, aws, google) from Terraform Registry or other sources.
+Installs modules
+Fetches referenced Terraform modules from local paths, Git repos, or registries.
+Sets up working directory
+Creates .terraform/ folder where plugins, modules, and state metadata are stored.
+When you run it: First time you clone a Terraform repo or after making changes to providers, backends, or modules.
+Analogy:
+terraform init is like installing dependencies and configuring your project before building it.
+terraform plan
+Purpose: Creates an execution plan showing what Terraform will do when you apply.
+What it actually does:
+Reads your current state (from backend).
+Compares it with your .tf configuration files.
+Detects changes needed to match desired state (create/update/delete resources).
+Outputs a plan showing exactly what will happen — without making changes yet.
+When you run it: After initializing, and before terraform apply to verify changes.
+Analogy:
+terraform plan is like seeing a dry-run of the changes before you press the “Deploy” button.
+In Azure DevOps context
+In a pipeline, terraform init is often the first Terraform step after checking out code.
+terraform plan is typically run next to validate changes — sometimes saved as an artifact (planfile) for a manual approval step before applying.
+Key Difference in one line:
+terraform init sets up the Terraform working environment,
+terraform plan shows you what Terraform would do if you ran terraform apply.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+7.	What is the purpose of the TF state file?
+
+In an Azure DevOps interview, when they ask about the Terraform state file (terraform.tfstate), they want to see if you understand how Terraform keeps track of infrastructure and why that matters for collaboration.
+Here’s how you can answer clearly and concisely:
+Purpose of the Terraform state file:
+Record of actual infrastructure
+The state file stores a snapshot of the current real-world infrastructure that Terraform manages (resource IDs, metadata, dependencies, etc.).
+This allows Terraform to know what’s already created, so it can figure out what changes are needed during a terraform plan or terraform apply.
+Mapping configuration to resources
+It keeps the mapping between your Terraform configuration files and the actual cloud resources in Azure (or other providers).
+Without it, Terraform wouldn’t know whether a resource already exists or needs to be created.
+Performance
+Instead of querying Azure for every detail, Terraform reads from the local or remote state file, making operations faster.
+Collaboration & remote state (important for Azure DevOps)
+In team environments, the state file should be stored remotely (e.g., Azure Storage account with state locking via blob leases) to avoid conflicts when multiple people run Terraform.
+Azure DevOps pipelines often use remote state so the pipeline and developers share the same source of truth.
+Example interview answer:
+"The Terraform state file stores the mapping between Terraform’s configuration and the actual resources in Azure.
+It’s Terraform’s source of truth for what’s been deployed, so it knows what changes to make without recreating everything.
+In Azure DevOps, we usually store the state remotely in an Azure Storage account with state locking to allow safe collaboration between team members and CI/CD pipelines."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+8.	How to recover a deleted TF state file?
+
+In an Azure DevOps context, when an interviewer asks about recovering a deleted Terraform state file, they’re essentially checking if you understand:
+How Terraform stores and uses its state file
+How state files are typically stored remotely in Azure setups
+Best practices for recovery and prevention
+Understanding the Problem
+Terraform's state file (terraform.tfstate) keeps track of resources Terraform manages.
+If deleted, Terraform loses track of your infrastructure — it doesn’t destroy resources, but it can’t plan changes accurately.
+In Azure DevOps pipelines, the state is usually stored remotely (not locally on the agent) — often in Azure Storage.
+
+How to Recover (Azure DevOps + Azure Storage Backend)
+1. Check if Remote Backend Has Versioning
+If you’re using an Azure Storage backend for Terraform:
+Terraform config might look like:
+hcl
+Copy
+Edit
+backend "azurerm" {
+  resource_group_name  = "rg-tfstate"
+  storage_account_name = "tfstateaccount"
+  container_name       = "tfstate"
+  key                  = "prod.terraform.tfstate"
+}
+Recovery steps:
+Go to Azure Portal → Storage Account.
+Open the Blob container where the state file is stored.
+Look under Blob versions (versioning must have been enabled beforehand).
+Restore the latest working version by overwriting the current blob.
+Re-run terraform init to ensure the restored state is in sync.
+
+2. If Versioning Wasn’t Enabled
+Check if soft delete is enabled on the blob container.
+This allows restoring deleted blobs within a retention period.
+If enabled:
+Open the blob container.
+Show deleted blobs.
+Restore the desired one.
+
+3. If Stored Locally (Bad Practice in Azure DevOps)
+Check local machine recycle bin (if recently deleted).
+Check Git repo (if you wrongly committed it — not recommended for security reasons).
+Ask team members if they have a recent copy.
+
+4. Absolute Last Resort
+If no backup/versioning/soft delete exists:
+Use terraform import to manually re-create the state by importing each resource from Azure into a new state file.
+Example:
+bash
+Copy
+Edit
+terraform import azurerm_resource_group.example /subscriptions/<sub_id>/resourceGroups/example
+This is tedious and prone to human error — hence why versioning and backups are critical.
+Best Practices to Avoid This Problem
+Always use remote backend with state file versioning.
+Enable soft delete + blob versioning on Azure Storage.
+Lock the state file with state locking (Azure Storage supports this via blob leases).
+Never store .tfstate in Git.
+Periodically export state file snapshots.
+
+✅ Interview Tip:
+If you explain both the technical recovery steps and preventive measures, you show that you think about both incident response and long-term stability.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+9.	Different parameters passed to certain TF resources (Ex: Azure VM, VPC, Subnet or AWS EC2, S3, etc)
+
+Got it — sounds like the interviewer is checking if you understand how Terraform parameters (arguments) vary between different cloud provider resources and can map them to real-world infrastructure objects like Azure VM, VNet, Subnet, AWS EC2, S3, etc.
+I’ll break it down for you in a clear, structured way — both for Azure and AWS, with examples.
+
+1. Terraform Parameters for Azure Resources
+Azure Virtual Machine (azurerm_virtual_machine or azurerm_linux_virtual_machine)
+Key Parameters:
+name — VM name
+location — Azure region (eastus, westeurope)
+resource_group_name — Name of the Azure Resource Group
+size — VM size (Standard_DS1_v2)
+network_interface_ids — NICs attached
+os_disk — Block for OS disk settings
+name
+caching
+storage_account_type
+source_image_reference — OS image settings
+publisher, offer, sku, version
+admin_username / admin_password or admin_ssh_key
+Azure VNet (azurerm_virtual_network)
+Key Parameters:
+name — VNet name
+address_space — CIDR block(s) (["10.0.0.0/16"])
+location — Azure region
+resource_group_name — Resource Group name
+Azure Subnet (azurerm_subnet)
+Key Parameters:
+name — Subnet name
+resource_group_name
+virtual_network_name — VNet it belongs to
+address_prefixes — CIDR block(s) (["10.0.1.0/24"])
+
+2. Terraform Parameters for AWS Resources
+AWS EC2 Instance (aws_instance)
+Key Parameters:
+ami — AMI ID (ami-0abcdef1234567890)
+instance_type — e.g., t2.micro
+key_name — SSH key pair name
+subnet_id — Subnet in which to launch
+vpc_security_group_ids — Security Groups
+associate_public_ip_address — Boolean
+tags — Key-value metadata
+AWS S3 Bucket (aws_s3_bucket)
+Key Parameters:
+bucket — Name of the bucket
+acl — Access control (private, public-read)
+versioning — Block for versioning settings
+server_side_encryption_configuration — SSE settings
+lifecycle_rule — Retention/transition rules
+AWS VPC (aws_vpc)
+Key Parameters:
+cidr_block — CIDR range (10.0.0.0/16)
+enable_dns_support — Boolean
+enable_dns_hostnames — Boolean
+tags — Metadata
+AWS Subnet (aws_subnet)
+Key Parameters:
+vpc_id — ID of parent VPC
+cidr_block — Subnet CIDR
+availability_zone — e.g., us-east-1a
+map_public_ip_on_launch — Boolean
+
+3. How to Answer in an Interview
+If asked:
+“What parameters are passed to certain Terraform resources like Azure VM, VPC, Subnet or AWS EC2, S3?”
+You can respond:
+“It depends on the resource type and provider, but generally each Terraform resource has arguments that define its configuration.
+For example, an Azure VM (azurerm_linux_virtual_machine) needs parameters like name, location, resource_group_name, size, network_interface_ids, and source_image_reference.
+An Azure VNet has address_space and location. In AWS, an aws_instance needs ami, instance_type, and networking parameters, while an S3 bucket has parameters like bucket, acl, versioning, and lifecycle rules.
+Each parameter maps directly to the provider’s API settings.”
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+10.	What is the use-case of modules in TF?
+
+In an Azure DevOps + Terraform interview, if they ask:
+"What is the use-case of modules in Terraform?"
+They’re testing whether you know why and when to use Terraform modules — not just how.
+Terraform Modules — Use Case
+A module in Terraform is simply a reusable container for one or more resources.
+Instead of rewriting the same Terraform code over and over, you can package it into a module and call it multiple times.
+Key Use-Cases
+Reusability
+Instead of writing a VM definition multiple times, create a vm_module and use it in different environments (dev, staging, prod).
+Example: Same Azure VNet config for multiple regions.
+Standardization
+Ensures all teams create infrastructure with the same settings, naming conventions, security rules, etc.
+Example: Company policy requires all Azure Storage Accounts to have encryption, tags, and private access.
+Maintainability
+You only update the module once and it applies everywhere it’s used.
+Example: Changing VM size in a module automatically applies to all deployments using that module.
+Abstraction
+Hides complex Terraform code from end users — they just provide variables.
+Example: Dev teams only pass vm_name, vm_size, location; networking/security setup happens inside the module.
+Environment Management
+Separate configs for dev, test, prod can be parameterized and called from the same module.
+Example
+hcl
+Copy
+Edit
+module "web_vm" {
+  source              = "./modules/azure_vm"
+  vm_name             = "webserver01"
+  vm_size             = "Standard_DS1_v2"
+  resource_group_name = "rg-web"
+  location            = "eastus"
+}
+Here, ./modules/azure_vm might contain all the resources needed for:
+VM creation
+NIC creation
+OS disk setup
+NSG association
+
+✅ Short Interview Answer:
+"In Terraform, modules are used to group related resources into reusable, maintainable, and standardized components.
+They help avoid code duplication, enforce company standards, simplify environment management, and make infrastructure deployments more consistent across Azure or AWS environments."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+11.	What is a workspace in TF?
+
+In the context of Azure DevOps (specifically when talking about TF — the tf.exe command-line tool for Team Foundation Version Control, TFVC),
+a workspace is essentially your personal mapping between the files in source control and a location on your local machine.
+Here’s the breakdown you’d want to give in an interview:
+Definition
+A workspace is a client-side copy of the files in TFVC along with metadata that tracks which server paths map to which local paths.
+It’s the environment that lets you edit files locally while keeping track of changes for check-in to the server.
+Key points to mention in an interview
+Purpose –
+Links your local folders to the version-controlled files on the TFVC server.
+Lets you work offline and then synchronize changes with the server.
+Types –
+Server workspace: Files are read-only until you check them out; changes are tracked on the server.
+Local workspace: Files are editable anytime; changes are detected by scanning your working folder.
+Contents of a workspace –
+Mappings (server path ↔ local path).
+Pending changes.
+Version information for each file.
+Relevance to Azure DevOps –
+When using TFVC in Azure DevOps, every developer needs a workspace to manage their local code.
+Configured via Visual Studio, the Azure DevOps web portal, or the tf workspace command.
+Example analogy
+Think of TFVC as a giant library of code.
+Your workspace is your “reading desk” where you bring selected books (files) from the library shelves (server) and lay them out in a specific arrangement on your desk (local machine) so you can read and modify them.
+The system remembers what’s on your desk and what changes you’ve made so it can put them back on the right shelf later.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+12.	How to merge manually created resources in cloud to the TF config file?
+
+Ah — that’s a good one.
+They’re basically asking: "You already have cloud resources that were created manually — how do you bring them under Terraform’s management without destroying them?"
+For Azure DevOps + Terraform (Azure provider), the usual process looks like this:
+
+1. Make sure Terraform code matches the existing resources
+In your Terraform configuration (.tf files), define the resources exactly as they exist in Azure.
+You can either write them from scratch or use a tool to generate a starting point:
+terraformer or aztfexport can reverse-engineer Azure resources into .tf files.
+For example:
+bash
+Copy
+Edit
+az login
+aztfexport resource-group <rg-name> -o ./imported
+This helps avoid typos and mismatches.
+
+2. Use terraform import to link state to existing resources
+Terraform needs to know:
+"This resource in my .tf file corresponds to that resource in Azure."
+Example:
+bash
+Copy
+Edit
+terraform init
+terraform import azurerm_resource_group.example /subscriptions/<sub_id>/resourceGroups/<rg_name>
+azurerm_resource_group.example = the resource name in your .tf code.
+The second argument is the Azure resource ID.
+Repeat for each resource you want to import.
+
+3. Run terraform plan to confirm no changes
+After import, Terraform’s state will have references to the existing resources.
+Run:
+bash
+Copy
+Edit
+terraform plan
+Ideally, Terraform should say “No changes”.
+If it wants to change something, check your .tf configuration to make sure attributes match reality.
+
+4. Commit your code to Azure DevOps repo
+Push .tf files and .tfstate (or remote state backend configuration) into your repo/pipeline.
+Ensure your Azure DevOps pipeline is configured with:
+terraform init
+terraform plan
+terraform apply
+
+5. Common gotchas in interviews
+State file location → Mention storing state in an Azure Storage Account backend, so multiple people/pipelines can work safely:
+hcl
+Copy
+Edit
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "tfstate-rg"
+    storage_account_name = "tfstateacct"
+    container_name       = "tfstate"
+    key                  = "prod.terraform.tfstate"
+  }
+}
+Exact resource names & arguments → If your .tf file doesn’t match the existing resource configuration, Terraform will want to replace it.
+Order of imports → Some resources depend on others (e.g., NIC before VM). Import in dependency order.
+In short for an interview answer:
+"You write Terraform configuration that describes the existing resources, then use terraform import to bring those resources into state without recreating them. You validate with terraform plan to ensure no drift, store state remotely in Azure Storage for collaboration, and then manage everything via the Azure DevOps pipeline."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+13.	What are the state commands? What does TF state move do?
+
+In an Azure DevOps interview, if they ask about state commands and specifically about terraform state move, they’re talking about Terraform's CLI commands for managing the Terraform state file.
+Let’s break it down so you can give a strong answer.
+
+1. Terraform “state” commands
+Terraform stores the current state of your infrastructure in a state file (either local or remote in a backend like Azure Storage, S3, etc.).
+Terraform provides terraform state subcommands to inspect, modify, or repair that state without touching actual resources.
+Common ones:
+Command	Purpose
+terraform state list	Lists all resources in the current state.
+terraform state show <address>	Shows detailed attributes for a specific resource in state.
+terraform state rm <address>	Removes a resource from the state file (Terraform will forget it, but not delete it in the cloud).
+terraform state mv <source> <destination>	Moves a resource’s state from one address to another (can be used for refactoring).
+terraform state pull	Downloads the raw state file.
+terraform state push	Uploads a local state file to the remote backend.
+
+2. What does terraform state mv do?
+Purpose:
+Moves an existing resource’s entry in the state file from one address to another without destroying or recreating the actual resource in Azure (or any provider).
+Why it's used:
+Refactoring: If you change the name of a resource in your .tf files, Terraform will think the old one should be destroyed and a new one created. To avoid that, you “move” the state reference.
+Module restructuring: Moving a resource into or out of a module.
+Splitting configuration files: When reorganizing Terraform code.
+Example:
+bash
+Copy
+Edit
+terraform state mv azurerm_storage_account.old azurerm_storage_account.new
+This tells Terraform:
+
+“Hey, the thing you previously knew as old should now be tracked as new—don’t delete it, just update the state file.”
+
+✅ Interview tip:
+You can say:
+"terraform state mv is used to update the Terraform state file when a resource's logical name or location in code changes, so Terraform doesn't destroy and recreate it. It’s purely a state file change—no infrastructure is touched. This is often done during refactoring or module changes."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+14.	What is a Dynamic block in TF?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+15.	How to pass/store sensitive info like password/keys in terraform?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+16.	How to validate a TF file?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+17.	How to make sure that a resource is created only after the previous resource was created successfully or after the previous step was successful if TF?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+18.	What is the AzureRM value you’re using?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+19.	How to connect to Azure for terraform without storing any kind of credentials on the machine?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+20.	How does TF support immutable infrastructure?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+21.	How to handle multiple developers working with same Centralized TF state file simultaneously?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+22.	How to configure multiples providers in such a way that the same TF file can deploy resources in multiple AWS regions or even multiple AWS Accounts?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+23.	Pro/Cons of IoC
