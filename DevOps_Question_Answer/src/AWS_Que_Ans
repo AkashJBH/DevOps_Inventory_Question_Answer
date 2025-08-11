@@ -1,0 +1,82 @@
+Got it — I’ll give you concise, interview-ready answers that still explain enough so the interviewer feels you know the concepts well, with practical examples where needed.
+1. How can I copy an EBS volume from one region to another?
+Take a snapshot of the EBS volume in the source region.
+Copy the snapshot to the target region using “Copy Snapshot” in the console or AWS CLI (aws ec2 copy-snapshot).
+Create a new EBS volume from the copied snapshot in the target region.
+Why: Enables disaster recovery, migration, and cross-region redundancy.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+2. What are S3 Lifecycle Policies?
+Rules to automate object transitions and expirations.
+Example: Move data to S3 Glacier after 30 days, delete after 365 days.
+Why: Reduces cost, enforces data retention policies.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+3. Most important part of a VPC, how to create it, and why is it used?
+Most important part: CIDR block (defines IP address range).
+Why: Provides isolated and secure networking for AWS resources.
+How to create:
+Define CIDR (e.g., 10.0.0.0/16).
+Create subnets (public/private).
+Add Internet Gateway (for public access).
+Configure route tables.
+Set up security groups & NACLs.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+4. Public vs. Private Subnet and how to create
+Public Subnet: Has route to Internet Gateway. Used for web servers, load balancers.
+Private Subnet: No direct internet access. Used for databases, backend apps.
+How to create:
+In VPC, create subnet → Attach route table → Add route to IGW (public) or NAT GW (private).
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+5. Where to locate a Subnet in AWS?
+A subnet belongs to one Availability Zone inside a VPC.
+Chosen during subnet creation (e.g., ap-south-1a).
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+6. What is Internet Gateway? AWS IGW vs. Azure NAT Gateway
+IGW: Horizontally scaled, redundant gateway that allows communication between VPC resources and the internet.
+AWS IGW: Enables both inbound & outbound internet access.
+Azure NAT Gateway: Provides only outbound internet access for VMs in private subnets — no inbound.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+7. Types of AWS Load Balancers & Use Cases
+Application LB (ALB): Layer 7, HTTP/HTTPS, path/host-based routing → Web apps, microservices.
+Network LB (NLB): Layer 4, ultra-low latency, TCP/UDP → Gaming, real-time apps.
+Gateway LB (GLB): For inserting appliances like firewalls → Security inspection.
+Classic LB (Legacy): Layer 4/7, basic features → Not recommended for new deployments.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+8. AWS Route 53 (DNS)
+Scalable and highly available DNS web service.
+Features:
+Domain registration
+DNS record management (A, CNAME, MX, etc.)
+Routing policies: Simple, Weighted, Latency-based, Geolocation, Failover.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+9. How to clone an EC2 to another region?
+Create AMI of EC2 → Copy AMI to target region → Launch EC2 in target region from that AMI.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+10. What is Peering?
+VPC Peering: Connects two VPCs privately without internet, using AWS backbone network.
+One-to-one relationship (no transitive peering).
+Use case: Communication between separate environments (e.g., prod & dev).
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+11. CIDR Range and how it’s calculated
+CIDR (Classless Inter-Domain Routing): Notation for IP address + subnet mask.
+Example: 10.0.0.0/24 → 256 IP addresses.
+Formula: 2^(32 - prefix) gives total IPs (minus 5 reserved by AWS per subnet).
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+12. EC2 in different regions via CFT — how to connect
+Regions are isolated → need VPC Peering + VPN + Transit Gateway for inter-region communication.
+In CFT, define resources in multiple regions (or deploy stack sets) and configure connectivity.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+13. Access AWS resources from EC2 without storing credentials
+Use IAM Roles attached to EC2 → Grants temporary credentials to access AWS resources.
+Safer than hardcoding keys.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+14. Approach to deploy an application using S3, EC2, LB & Auto-scaling
+S3: Store static assets.
+EC2: Host application backend.
+Load Balancer: Distribute traffic evenly to EC2 instances.
+Auto Scaling Group: Adjust number of instances based on demand.
+Route 53: DNS for app domain.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+15. How is CFT used to maintain consistency & reproducibility?
+Infrastructure as Code → Templates define resources in JSON/YAML.
+Same template can be deployed repeatedly for identical environments.
+Useful for version control & disaster recovery.

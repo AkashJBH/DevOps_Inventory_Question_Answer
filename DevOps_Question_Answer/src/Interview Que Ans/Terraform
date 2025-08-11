@@ -1,0 +1,400 @@
+1.	Use of the count variable in TF.
+
+In TensorFlow, the term "count variable" can mean different things depending on the context of the interview question — so you need to clarify whether they mean:
+a loop counter (Python-side variable during TensorFlow ops)
+a tf.Variable that counts occurrences/events
+a specific TensorFlow function’s count parameter (like in tf.repeat or tf.nn.top_k)
+or a training step counter (common in model training).
+
+Likely Interview Interpretations
+1️⃣ Count variable as a training step counter
+In TensorFlow’s training loops, a count or global_step variable is often used to track how many training steps have occurred.
+Example:
+python
+Copy
+Edit
+global_step = tf.Variable(0, trainable=False, dtype=tf.int64)
+for batch in dataset:
+    # Training step...
+    global_step.assign_add(1)
+Use:
+Logging and monitoring
+Learning rate scheduling (e.g., decay after a number of steps)
+Checkpoint naming and restoration
+
+2️⃣ Count variable in loops (tf.while_loop)
+TensorFlow graphs can’t use normal Python variables for counting inside a loop; you need a TensorFlow tensor or variable as a counter.
+python
+Copy
+Edit
+i = tf.constant(0)
+c = lambda i: tf.less(i, 10)
+b = lambda i: tf.add(i, 1)
+result = tf.while_loop(c, b, [i])
+Here, i is the count variable controlling loop iterations.
+
+3️⃣ Count variable in metrics / accumulators
+For example, when using tf.metrics.Mean, TensorFlow internally uses a count variable to store how many updates have been added so far:
+python
+Copy
+Edit
+metric = tf.metrics.Mean()
+metric.update_state([1, 2, 3])
+print(metric.count.numpy())  # The count variable tracks number of values seen
+Use: Keeps track of number of samples processed so that averages can be computed correctly.
+
+4️⃣ Count parameter in specific APIs
+Some TF functions literally take a count argument, like:
+tf.repeat(tensor, repeats, axis)
+tf.random.stateless_binomial(count=...)
+tf.data.Dataset.take(count)
+
+✅ Short interview answer:
+
+The “count variable” in TensorFlow generally refers to a variable or tensor used to keep track of iterations, steps, or accumulated values inside a graph.
+It’s often used in training loops (global_step), in metrics (to compute averages), and inside tf.while_loop for controlling execution.
+Since TensorFlow builds computation graphs, you can’t use a plain Python integer; you need a TensorFlow variable or tensor so it’s part of the graph.
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+2.	How to create multiple resources with numbered naming in TF? (count variable)
+
+In Terraform (TF), if you want to create multiple resources with numbered names using a count variable, you use the count meta-argument along with count.index.
+Here’s the basic approach you’d explain in an Azure DevOps interview:
+Example: Creating Multiple Azure Storage Accounts with Numbered Names
+hcl
+Copy
+Edit
+variable "resource_count" {
+  description = "Number of resources to create"
+  default     = 3
+}
+
+resource "azurerm_storage_account" "example" {
+  count                    = var.resource_count
+  name                     = "storacc${count.index + 1}" # numbered names
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "rg-tf-example"
+  location = "East US"
+}
+Key Points to Explain in Interview
+count meta-argument
+Tells Terraform how many instances of the resource to create.
+Value usually comes from a variable (var.resource_count).
+count.index
+Zero-based index for each created resource.
+If you want numbering to start from 1, use ${count.index + 1}.
+Naming pattern
+Append the index to make names unique:
+"storacc${count.index + 1}"
+Azure-specific constraints
+Azure storage account names must be globally unique, lowercase, and without special characters. You may need a prefix/suffix for uniqueness.
+💡 Pro tip for interviews:
+Also mention for_each as an alternative when working with named sets or maps, since count is for simple index-based creation.
+For example:
+hcl
+Copy
+Edit
+for_each = toset(["dev", "test", "prod"])
+name     = "storacc-${each.key}"
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+
+3.	How to update the config of a resource based on its tag values.
+Example: I created 10 VMs using a loop. Now I want to update the storage and images of VM #3,8 to new values.
+How can I achieve this using their tags? How to stop a resource from getting updated based on its tags?
+
+This sounds like an Azure DevOps + Infrastructure as Code interview question, and the intent is to check whether you understand:
+How to target specific resources based on tags.
+How to control conditional updates during a deployment.
+Let’s break this down step-by-step.
+
+Scenario Recap
+You provisioned 10 VMs in Azure (probably via ARM/Bicep/Terraform) in a loop.
+You want to update storage & image for VM #3 and VM #8 only.
+Selection should be based on tags, not hard-coded names.
+You also want to skip updating some resources based on tags.
+
+Key Concepts
+Tags as selectors
+Azure resources can be queried and filtered by tags.
+Example: Environment=Dev, Update=true.
+
+Conditional deployment
+ARM, Bicep, Terraform, and even Azure CLI support conditional logic to only act on certain resources.
+
+Idempotence
+Infrastructure-as-Code (IaC) tools will only apply changes to resources that meet your conditions.
+
+Possible Approaches
+1. Using Bicep/ARM with if condition
+You can check a resource's tag value at deployment time and decide whether to update it.
+bicep
+Copy
+Edit
+param vmTagSelector string = 'Update'
+param vmTagValue string = 'true'
+resource vm 'Microsoft.Compute/virtualMachines@2023-03-01' = if (tags[vmTagSelector] == vmTagValue) {
+  name: 'myVM'
+  location: resourceGroup().location
+  tags: {
+    Update: 'true'
+  }
+  properties: {
+    hardwareProfile: {
+      vmSize: 'Standard_DS2_v2'
+    }
+    storageProfile: {
+      imageReference: {
+        publisher: 'Canonical'
+        offer: 'UbuntuServer'
+        sku: '18.04-LTS'
+        version: 'latest'
+      }
+    }
+  }
+}
+How this works:
+The if block prevents deployment if the tag doesn’t match.
+Only VMs with Update=true tag will be updated.
+VM #3 and #8 can have that tag set.
+
+2. Using Terraform for_each + tag filter
+If using Terraform:
+hcl
+Copy
+Edit
+locals {
+  vms_to_update = {
+    for k, v in azurerm_virtual_machine.vms :
+    k => v
+    if lookup(v.tags, "Update", "false") == "true"
+  }
+}
+resource "azurerm_virtual_machine" "update_vms" {
+  for_each = local.vms_to_update
+
+  name                  = each.value.name
+  resource_group_name   = each.value.resource_group_name
+  location              = each.value.location
+  vm_size               = "Standard_DS2_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "20_04-lts"
+    version   = "latest"
+  }
+}
+How this works:
+Filters only the VMs that have the Update=true tag.
+Terraform will only touch those resources in the plan.
+
+3. Using Azure CLI / PowerShell Tag Query
+You could run a command before deployment to list only matching resources:
+bash
+Copy
+Edit
+az resource list --tag Update=true --query "[].name" -o tsv
+Then loop through the names and update only those.
+For skipping updates:
+Give those resources a tag like DoNotUpdate=true and add a condition to your pipeline to skip them.
+
+How to Stop a Resource from Being Updated
+Add a "freeze" tag and filter it out:
+Bicep Example:
+bicep
+Copy
+Edit
+if (tags['DoNotUpdate'] != 'true') {
+   // update resource
+}
+
+Terraform Example:
+hcl
+Copy
+Edit
+if lookup(v.tags, "DoNotUpdate", "false") != "true"
+
+✅ Interview Key Points to Mention:
+Always use tag-based filtering to avoid hard-coded names.
+Use conditional deployment logic (if in Bicep, for_each filtering in Terraform).
+Have a skip-update tag for production safety.
+You can combine IaC conditions with Azure CLI tag queries in your DevOps pipeline.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+4.	How to get the details of a pre-existing resource from cloud in TF and use it?
+
+Ah, this is a Terraform import + data source kind of question.
+If in an Azure DevOps + Terraform interview they ask "How do you get the details of a pre-existing resource from the cloud and use it?", they’re testing whether you know:
+How to bring an already-existing resource into Terraform’s state (without recreating it)
+Or how to reference an existing resource without importing it.
+
+Two main approaches
+1. If you want Terraform to manage it going forward → terraform import
+This is used when the resource exists in Azure but Terraform doesn’t know about it yet.
+Steps:
+Write the Terraform configuration block for the resource (matching the actual cloud resource settings as closely as possible).
+Run:
+bash
+Copy
+Edit
+terraform import <resource_type>.<resource_name> <resource_id>
+Example:
+bash
+Copy
+Edit
+terraform import azurerm_resource_group.example /subscriptions/1234/resourceGroups/my-rg
+Terraform will link the real resource to your state file.
+Run:
+bash
+Copy
+Edit
+terraform plan
+to check for any drift.
+
+2. If you only want to read its details without managing it → data source
+This is for using existing resources as inputs without importing them.
+Example:
+hcl
+Copy
+Edit
+data "azurerm_resource_group" "existing_rg" {
+  name = "my-rg"
+}
+output "rg_location" {
+  value = data.azurerm_resource_group.existing_rg.location
+}
+Here Terraform fetches the resource info at plan/apply time from Azure and makes it available for other resources.
+
+When to use which
+Import → You want Terraform to take over management of that resource.
+Data source → You just need its details (location, ID, tags, etc.) to build or link other resources.
+
+In Azure DevOps pipeline
+The steps are essentially the same:
+Add the Terraform code to the repo.
+Use Azure DevOps pipeline stages:
+terraform init
+terraform import (if needed, could be manual before pipeline runs)
+terraform plan / apply
+Make sure your service principal in Azure DevOps has permission to read the existing resource.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+5.	How to provide values to a TF variable explicitly at run time (to a variable that already has a default or set value in the TF files)?
+
+📌 In Terraform
+A variable can have:
+Default value — set in .tf files (variable "foo" { default = "bar" }).
+Overridden value — given at runtime, which takes precedence over the default.
+Terraform gives multiple ways to provide runtime values:
+
+1. Using -var in the CLI
+sh
+Copy
+Edit
+terraform apply -var="my_var=my_value"
+This directly overrides whatever default value is in the .tf file.
+
+2. Using a .tfvars file
+sh
+Copy
+Edit
+# myvars.tfvars
+my_var = "my_value"
+Run:
+
+sh
+Copy
+Edit
+terraform apply -var-file="myvars.tfvars"
+3. Using Environment Variables
+Terraform reads environment variables that follow:
+
+php-template
+Copy
+Edit
+TF_VAR_<variable_name>
+Example:
+
+sh
+Copy
+Edit
+export TF_VAR_my_var="my_value"
+terraform apply
+
+📌 In Azure DevOps
+In Azure DevOps pipelines, you can override Terraform variables at runtime in a few ways:
+
+Option 1: Pass via -var in the pipeline step
+yaml
+Copy
+Edit
+- task: TerraformCLI@0
+  inputs:
+    command: apply
+    workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+    commandOptions: >
+      -var="my_var=$(Build.SourceBranchName)"
+Option 2: Use TF_VAR_ environment variables in pipeline
+yaml
+Copy
+Edit
+variables:
+  TF_VAR_my_var: "overridden_value"
+
+- task: TerraformCLI@0
+  inputs:
+    command: apply
+Terraform will automatically pick it up.
+
+Option 3: Use a .tfvars file generated during the pipeline
+yaml
+Copy
+Edit
+- script: |
+    echo "my_var = \"$(Build.SourceVersion)\"" > pipeline.tfvars
+    terraform apply -var-file="pipeline.tfvars"
+
+📌 Key Interview Point
+If a variable already has a default value in Terraform code, you can still explicitly override it at runtime using:
+-var flag
+-var-file
+TF_VAR_ environment variables
+In Azure DevOps, this is typically done using pipeline variables, environment variables, or generating .tfvars files in the pipeline.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+6.	What does TF init actually do? TF init vs TF plan.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+7.	What is the purpose of the TF state file?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+8.	How to recover a deleted TF state file?
+
+9.	Different parameters passed to certain TF resources (Ex: Azure VM, VPC, Subnet or AWS EC2, S3, etc)
+10.	What is the use-case of modules in TF?
+11.	What is a workspace in TF?
+12.	How to merge manually created resources in cloud to the TF config file?
+13.	What are the state commands? What does TF state move do?
+14.	What is a Dynamic block in TF?
+15.	How to pass/store sensitive info like password/keys in terraform?
+16.	How to validate a TF file?
+17.	How to make sure that a resource is created only after the previous resource was created successfully or after the previous step was successful if TF?
+18.	What is the AzureRM value you’re using?
+19.	How to connect to Azure for terraform without storing any kind of credentials on the machine?
+20.	How does TF support immutable infrastructure?
+21.	How to handle multiple developers working with same Centralized TF state file simultaneously?
+22.	How to configure multiples providers in such a way that the same TF file can deploy resources in multiple AWS regions or even multiple AWS Accounts?
+23.	Pro/Cons of IoC
