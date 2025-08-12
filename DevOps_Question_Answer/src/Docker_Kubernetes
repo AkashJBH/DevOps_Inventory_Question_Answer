@@ -1,0 +1,958 @@
+
+1.	What is a volume in Docker and how can I attach one in a docker container & K8?
+
+1. What is a Volume in Docker?
+In Docker, a volume is a special storage mechanism that lives outside the container’s writable layer.
+It’s designed for persistent data that should survive container restarts, deletions, or upgrades.
+Key points to mention in an interview:
+Volumes are stored in Docker’s storage area (usually /var/lib/docker/volumes) unless you mount them elsewhere.
+Unlike container layers, volumes are not deleted when you remove a container (unless explicitly removed).
+Volumes are the preferred way to store and share data between containers.
+They avoid performance issues of bind mounts and are more portable.
+
+Types of Storage in Docker
+Bind mounts – Map a host machine path to a container path.
+Volumes – Managed by Docker, stored in a Docker-controlled location.
+tmpfs mounts – Store data in memory only.
+
+2. Attaching a Volume in Docker
+You can attach a volume when running a container using the -v or --mount flag.
+Example:
+bash
+Copy
+Edit
+# Create a named volume
+docker volume create mydata
+
+# Run a container and attach the volume
+docker run -d \
+  --name mycontainer \
+  -v mydata:/app/data \
+  nginx
+What happens here:
+mydata is created if it doesn’t exist.
+/app/data inside the container is linked to that volume.
+Data persists even if the container is removed.
+With --mount syntax (clearer for production use):
+bash
+Copy
+Edit
+docker run -d \
+  --name mycontainer \
+  --mount source=mydata,target=/app/data \
+  nginx
+3. Attaching a Volume in Kubernetes (K8s)
+In K8s, "volumes" work differently from Docker — they are tied to a Pod’s lifecycle (but can point to persistent storage).
+For data that survives pod restarts, you use a PersistentVolume (PV) and PersistentVolumeClaim (PVC).
+Example: Using an emptyDir volume (ephemeral):
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myapp
+      image: nginx
+      volumeMounts:
+        - mountPath: /app/data
+          name: my-volume
+  volumes:
+    - name: my-volume
+      emptyDir: {}
+This is ephemeral (deleted when the pod dies).
+
+Example: Using a PVC (persistent across pod restarts):
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: myapp
+      image: nginx
+      volumeMounts:
+        - mountPath: /app/data
+          name: my-volume
+  volumes:
+    - name: my-volume
+      persistentVolumeClaim:
+        claimName: mypvc
+In Azure Kubernetes Service (AKS):
+The PV can be backed by Azure Disk or Azure File for persistent cloud storage.
+
+4. How to Answer in an Azure DevOps Interview
+If asked:
+"What is a volume and how do you attach one in Docker & Kubernetes?"
+You might say:
+"In Docker, a volume is a way to store data outside the container’s writable layer so it persists beyond the container’s lifecycle.
+It’s managed by Docker and can be attached at container creation using the -v or --mount option. For example: docker run -v mydata:/app/data nginx.
+In Kubernetes, volumes are defined in Pod specs, but for persistence beyond the pod’s life, we use PersistentVolumes and PersistentVolumeClaims, which in Azure can be backed by Azure Disks or Azure Files.
+The PVC is then mounted into the pod using volumeMounts in the YAML."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+2.	How to create a volume in Docker & K8?
+
+1. Creating a Volume in Docker
+What a volume is:
+A volume is persistent storage managed by Docker, separate from the container’s writable layer. This lets data persist even if the container is deleted.
+Steps:
+A) Create a named volume
+bash
+Copy
+Edit
+docker volume create myvolume
+
+B) Use it in a container
+bash
+Copy
+Edit
+docker run -d \
+  --name mycontainer \
+  -v myvolume:/data \
+  nginx
+Here:
+myvolume is the Docker-managed storage.
+/data is the path inside the container.
+
+C) Inspect the volume
+bash
+Copy
+Edit
+docker volume inspect myvolume
+
+2. Creating a Volume in Kubernetes
+In Kubernetes, “volumes” are defined in the pod’s YAML.
+Persistent storage is usually handled with PersistentVolume (PV) and PersistentVolumeClaim (PVC).
+
+A) Static provisioning example
+Define PersistentVolume (PV)
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-example
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
+Define PersistentVolumeClaim (PVC)
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-example
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+Use PVC in a Pod
+yaml
+Copy
+Edit
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+    - name: mycontainer
+      image: nginx
+      volumeMounts:
+        - mountPath: /data
+          name: my-storage
+  volumes:
+    - name: my-storage
+      persistentVolumeClaim:
+        claimName: pvc-example
+Azure DevOps context
+If they specifically mean Azure Kubernetes Service (AKS):
+
+The PV will often use an Azure Disk or Azure File backend.
+You can define storageClassName in the PVC to provision storage dynamically:
+yaml
+Copy
+Edit
+spec:
+  storageClassName: azurefile
+or
+yaml
+Copy
+Edit
+spec:
+  storageClassName: managed-premium
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+3.	What is namespace in K8?
+
+In Kubernetes (K8s), a namespace is a logical partition within a Kubernetes cluster that allows you to organize and manage resources in a way that keeps them separate from other groups of resources.
+Here’s a breakdown — framed in an Azure DevOps interview-friendly way:
+
+Definition
+A namespace in Kubernetes is like a "virtual cluster" inside the physical cluster.
+It provides a scope for names of resources so that two teams (or projects) can have resources with the same name without conflict.
+
+Key Points to Mention in an Interview
+Purpose
+Helps in multi-tenancy: different teams or environments (dev, test, prod) can share the same cluster without interfering with each other.
+Enables resource isolation: CPU, memory, and storage quotas can be enforced per namespace.
+Scope
+Namespaces are for namescoped resources (Pods, Services, Deployments, etc.).
+Some resources (like Nodes, PersistentVolumes) are cluster-scoped and don’t belong to any namespace.
+Default behavior
+If you don’t specify a namespace, Kubernetes uses the default namespace.
+Kubernetes comes with predefined namespaces:
+default → for resources without a specified namespace
+kube-system → for system components
+kube-public → publicly readable resources
+kube-node-lease → for node heartbeat leases
+Azure DevOps Context
+In Azure Kubernetes Service (AKS), namespaces are useful when Azure DevOps pipelines deploy apps for multiple environments to the same AKS cluster.
+For example:
+dev namespace → deployments from development branch
+qa namespace → deployments for QA testing
+prod namespace → production workloads
+You can apply Role-Based Access Control (RBAC) to namespaces so different Azure DevOps service connections have least privilege.
+Command Examples
+bash
+Copy
+Edit
+# Create a namespace
+kubectl create namespace dev
+
+# List namespaces
+kubectl get namespaces
+
+# Deploy to a specific namespace
+kubectl apply -f app.yaml -n dev
+💡 Interview Tip:
+If they push deeper, mention that namespaces are not for security boundaries in the strictest sense—network policies and RBAC must be combined to secure workloads between namespaces.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+4.	How can I create a new node in K8 via command?
+
+In Kubernetes (K8s), you don’t literally “create” a node by running a kubectl command, because a node is an actual machine (physical or virtual) that joins the cluster.
+Instead, the process usually depends on where the cluster is running.
+Since you mentioned Azure DevOps, I’ll assume the cluster is in Azure Kubernetes Service (AKS), but I’ll cover the general idea first.
+
+General Kubernetes Concept
+A node is added to the cluster by provisioning a VM (or server) and then running kubeadm join with the token from the control plane (for self-managed clusters).
+You cannot run something like kubectl create node to add a working node — that only creates an object in etcd, but it won’t actually run workloads.
+For AKS (Azure Kubernetes Service)
+In AKS, nodes are managed via node pools.
+To add a new node in AKS, you scale the node pool.
+Command:
+bash
+Copy
+Edit
+# Add 1 more node to a node pool
+az aks scale \
+  --resource-group <ResourceGroupName> \
+  --name <AKSClusterName> \
+  --node-count <NumberOfNodes> \
+  --nodepool-name <NodePoolName>
+Example:
+bash
+Copy
+Edit
+az aks scale \
+  --resource-group MyResourceGroup \
+  --name MyAKSCluster \
+  --node-count 4 \
+  --nodepool-name nodepool1
+This will create new VM(s) and join them to your cluster automatically.
+For Self-Managed Kubernetes
+If you’re setting up your own cluster (not AKS, EKS, GKE):
+
+Provision a new VM or server with Kubernetes installed.
+On the new node, run:
+bash
+Copy
+Edit
+kubeadm join <control-plane-endpoint>:6443 \
+  --token <token> \
+  --discovery-token-ca-cert-hash sha256:<hash>
+Verify:
+bash
+Copy
+Edit
+kubectl get nodes
+💡 Interview Tip:
+If they ask this in an Azure DevOps interview, they probably expect:
+For AKS → use az aks scale or create a new node pool with az aks nodepool add.
+Mention that in vanilla Kubernetes, nodes join via kubeadm join, not kubectl create.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+5.	What are the contents of a Dockerfile?
+
+In an Azure DevOps interview, when asked "What are the contents of a Dockerfile?", the goal is to show that you understand both the purpose of a Dockerfile and the typical instructions it contains.
+Here’s a clear, structured answer you could give:
+
+1. Purpose of a Dockerfile
+A Dockerfile is a text file that contains instructions for building a Docker image. It defines:
+The base image
+Application source code
+Dependencies
+Build steps
+Runtime configuration
+
+2. Common Contents of a Dockerfile
+Typical instructions include:
+Base image – specifies the starting point
+dockerfile
+Copy
+Edit
+FROM ubuntu:20.04
+or
+
+dockerfile
+Copy
+Edit
+FROM node:18-alpine
+Metadata – provides information about the image
+
+dockerfile
+Copy
+Edit
+LABEL maintainer="devops@example.com"
+Environment variables – set variables for the container
+
+dockerfile
+Copy
+Edit
+ENV APP_ENV=production
+Working directory – sets the default directory inside the container
+
+dockerfile
+Copy
+Edit
+WORKDIR /app
+Copy files into the image – adds source code/configuration
+
+dockerfile
+Copy
+Edit
+COPY . /app
+Install dependencies – runs commands during build
+
+dockerfile
+Copy
+Edit
+RUN apt-get update && apt-get install -y python3
+Expose ports – informs which ports the container listens on
+
+dockerfile
+Copy
+Edit
+EXPOSE 8080
+Default command – specifies what runs when the container starts
+
+dockerfile
+Copy
+Edit
+CMD ["python3", "app.py"]
+or
+
+dockerfile
+Copy
+Edit
+ENTRYPOINT ["./start.sh"]
+3. Azure DevOps Angle
+In Azure DevOps, the Dockerfile:
+
+Is stored in the repository along with the app code.
+Is referenced in a CI/CD pipeline (usually in a YAML file) for automated image builds.
+Can be optimized for smaller size and faster builds, which is important in cloud deployments.
+
+✅ Sample Summary Answer for Interview:
+A Dockerfile is a script of instructions for building a Docker image. It typically contains:
+A FROM statement to specify the base image.
+Optional LABEL for metadata.
+ENV for environment variables.
+WORKDIR to set the working directory.
+COPY or ADD to include application files.
+RUN to install dependencies or perform build steps.
+EXPOSE to specify listening ports.
+CMD or ENTRYPOINT to define the default execution command.
+In Azure DevOps, the Dockerfile is used in build pipelines to produce container images that can be pushed to registries like Azure Container Registry and deployed to AKS or App Services.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+6.	Dockerfile vs Docker compose
+
+In an Azure DevOps interview, if they ask “Dockerfile vs Docker Compose?”, they’re testing whether you understand the distinction between image creation and multi-container orchestration—and how these tools fit into CI/CD pipelines.
+Here’s a clear breakdown you could use in your answer:
+
+1️⃣ Dockerfile
+Purpose → Defines how to build a Docker image (instructions to package your app with dependencies).
+Format → A plain text file with instructions (FROM, COPY, RUN, EXPOSE, etc.).
+Scope → Focuses on one image.
+Usage in Azure DevOps →
+Used in pipeline build stage to create an image (docker build -t myimage .).
+Often stored in the repo alongside the application code.
+Example:
+dockerfile
+Copy
+Edit
+FROM node:18
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD ["node", "server.js"]
+Analogy → Like a recipe for baking one cake.
+
+2️⃣ Docker Compose
+Purpose → Defines & runs multi-container applications (services, networks, volumes).
+Format → YAML file describing how containers interact.
+Scope → Orchestrates multiple containers together.
+Usage in Azure DevOps →
+Used in pipeline deploy/test stages to spin up local/test environments quickly (docker-compose up).
+Handy for integration tests (e.g., app container + database + cache).
+Example:
+yaml
+Copy
+Edit
+version: "3"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_PASSWORD: example
+Analogy → Like a party planner who coordinates the cake, drinks, music, and decorations together.
+
+Key Differences Table
+Feature	Dockerfile	Docker Compose
+Function	Build an image	Run multi-container apps
+File type	Text file with build instructions	YAML file with service definitions
+Scope	Single image	Multiple containers + networks/volumes
+Command	docker build	docker-compose up
+Azure DevOps role	Build stage	Deploy/Test stage
+
+💡 Interview Tip:
+You can wrap up by saying:
+"In Azure DevOps pipelines, the Dockerfile is used during the build phase to create images, while Docker Compose can be used in integration testing or local deployments to coordinate multiple services.
+In production, Compose is often replaced by Kubernetes manifests or Azure Container Apps configurations."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+7.	How do you create a Dockerfile for any application deployment?
+
+In an Azure DevOps or cloud deployment interview, when they ask "How do you create a Dockerfile for any application deployment?", they’re usually testing whether you understand:
+The role of Docker in deployment pipelines (including Azure Container Registry, AKS, or App Service).
+The general structure of a Dockerfile that can be adapted for any app.
+Here’s how you’d answer in a structured, interview-friendly way:
+
+1. Explain the Purpose
+A Dockerfile is a script of instructions that tells Docker how to build an image containing your application and its dependencies.
+In Azure, the image can be pushed to Azure Container Registry (ACR) and then deployed to services like Azure Kubernetes Service (AKS), App Service for Containers, or Azure Container Instances.
+
+2. General Steps to Create a Dockerfile (Any Application)
+Regardless of language, you typically follow these steps:
+Choose a base image
+Use a lightweight OS or language runtime image (e.g., python:3.11-alpine, node:20-alpine, mcr.microsoft.com/dotnet/aspnet:8.0).
+In Azure, prefer Microsoft-hosted base images from MCR (Microsoft Container Registry) for security and compatibility.
+Set working directory
+WORKDIR /app to define where inside the container your app lives.
+Copy application code
+Use .dockerignore to avoid copying unnecessary files.
+COPY . .
+Install dependencies
+Example for Python: RUN pip install -r requirements.txt
+Example for Node.js: RUN npm install --only=production
+Expose ports
+EXPOSE 80 or whichever port your app listens on.
+Define start command
+CMD ["python", "app.py"] or ENTRYPOINT ["dotnet", "MyApp.dll"].
+
+3. Example Generic Dockerfile
+Here’s a template for any application:
+dockerfile
+Copy
+Edit
+# Step 1: Choose a base image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+# Step 2: Copy project files
+COPY . .
+# Step 3: Install dependencies (language-specific)
+# For .NET example
+RUN dotnet restore
+RUN dotnet build -c Release --no-restore
+# Step 4: Publish application
+RUN dotnet publish -c Release -o out
+# Step 5: Expose port and set entry point
+EXPOSE 80
+ENTRYPOINT ["dotnet", "out/MyApp.dll"]
+(For Node/Python/Java apps, just swap the base image and dependency commands.)
+
+4. Azure-Specific Best Practices
+Use multi-stage builds to keep images small.
+Scan images with Microsoft Defender for Cloud before deployment.
+Store images in Azure Container Registry (ACR).
+Use .dockerignore to reduce build context size.
+In Azure Pipelines, add a docker build → docker push step before deployment.
+If you phrase it like this in an interview, you’ll show you understand both the technical Dockerfile creation process and the Azure deployment context.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+8.	Explain k8 architecture.
+
+Alright — let’s break down Kubernetes (k8s) architecture in a way that makes sense for an Azure interview, where they might expect you to connect it with Azure Kubernetes Service (AKS).
+
+1. Kubernetes Architecture Overview
+Kubernetes is a container orchestration system with a control plane (brains) and worker nodes (muscle).
+In Azure, the control plane is usually managed by AKS (so you don’t have to manage the master VMs yourself).
+
+A. Control Plane Components
+This is where cluster-wide decisions happen (scheduling, scaling, API access).
+Component	Purpose
+API Server (kube-apiserver)	The front door of Kubernetes — all commands (kubectl, dashboard, Azure CLI) go through here.
+etcd	A distributed key-value store — holds cluster state and config (e.g., which pods exist, which nodes they run on).
+Controller Manager (kube-controller-manager)	Runs background controllers (e.g., ReplicaSet Controller, Node Controller) to make sure reality matches the desired state.
+Scheduler (kube-scheduler)	Decides which node gets which pod, based on resources, affinity, taints, etc.
+Cloud Controller Manager	Connects k8s with cloud APIs (in AKS, this talks to Azure for load balancers, storage, etc.).
+In AKS:
+Azure manages the control plane for you (no SSH into masters).
+SLA-backed API server and etcd hosted in Azure.
+
+B. Worker Node Components
+These are VMs (nodes) where workloads (Pods) actually run.
+
+Component	Purpose
+kubelet	Talks to the API server, ensures containers are running as specified in Pod specs.
+kube-proxy	Handles networking and load balancing inside the cluster.
+Container Runtime	Runs the containers (Docker, containerd, etc.).
+In AKS, worker nodes run inside a node pool (Azure VMs).
+
+C. Pods, Deployments, and Services
+Pod: Smallest deployable unit — wraps one or more containers.
+Deployment: Defines desired pod replicas and handles rolling updates.
+Service: Stable networking endpoint for pods.
+
+2. Azure-Specific Additions in AKS
+When explaining in an Azure interview, link architecture to Azure-managed services:
+Azure Load Balancer / Application Gateway → Integrates with k8s Services of type LoadBalancer.
+Azure Disk & Azure Files → Persistent Volumes.
+Azure Monitor + Container Insights → Observability.
+Azure AD integration → RBAC and identity-based access to the API server.
+Virtual Network (VNet) Integration → CNI-based pod networking.
+
+3. Diagram (Mental Model)
+arduino
+Copy
+Edit
+                Azure Managed Control Plane
+   ┌───────────────────────────────────────────┐
+   │ API Server | etcd | Scheduler | Controllers│
+   └───────────────────────────────────────────┘
+                    ↑        ↓
+           kubectl / Azure CLI / Portal
+                    ↑
+     ┌───────────────────────────────────────────┐
+     │                Worker Nodes                │
+     │ ┌─────────────┐  ┌─────────────┐           │
+     │ │ kubelet     │  │ kubelet     │           │
+     │ │ kube-proxy  │  │ kube-proxy  │           │
+     │ │ Pods+Containers │ Pods+Containers │      │
+     │ └─────────────┘  └─────────────┘           │
+     └───────────────────────────────────────────┘
+✅ Pro tip for interviews: If they specifically ask about AKS, emphasize:
+Managed control plane → You only manage nodes, not masters.
+Azure integrations → Networking, load balancing, storage, monitoring.
+Security & scaling → Role-based access (RBAC), horizontal/vertical scaling.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+9.	Difference between k8 deployment and stateful set.
+
+In Kubernetes (including when running in Azure Kubernetes Service), the difference between a Deployment and a StatefulSet mostly comes down to how they manage pod identity, storage, and scaling behavior.
+
+Here’s a breakdown you could give in an interview:
+
+1. Deployment
+Purpose: For stateless workloads.
+Pod identity: Pods are interchangeable — no stable network identity. Each pod gets a random name (e.g., app-5d9d8b4c78-xyz12).
+Scaling: You can scale up/down easily; new pods don’t have to keep the same identity or data.
+Storage: Usually uses ephemeral storage or shared external volumes; pods do not have dedicated persistent storage.
+Use cases: Web servers, API backends, stateless microservices.
+In Azure: Often backed by Azure Disks or Azure Files if you need shared storage, but typically stateless containers.
+
+2. StatefulSet
+Purpose: For stateful workloads that need stable identity and data persistence.
+Pod identity: Each pod has a stable, unique name (e.g., db-0, db-1, db-2).
+Scaling: Maintains pod ordering and identity when scaling up or down.
+Storage: Each pod can have its own PersistentVolumeClaim (PVC), usually bound to a PersistentVolume (e.g., Azure Managed Disk) — data persists even if the pod restarts.
+Use cases: Databases (MySQL, MongoDB), Kafka, Redis clusters.
+In Azure: Commonly paired with Azure Disks for per-pod persistent storage.
+
+Quick comparison table:
+Feature	                    Deployment	        StatefulSet
+Workload type	            Stateless	        Stateful
+Pod identity	            Random	            Stable
+Pod ordering	            No	                Yes
+Storage	                    Shared/ephemeral	Dedicated PVC per pod
+Scaling behavior	        Any order	        Ordered (scale up/down carefully)
+Azure example usage	        Frontend app	    SQL Server on Linux
+
+💡 Interview tip:
+If they ask specifically for Azure context, mention that:
+Both can be used in AKS.
+StatefulSet often works with Azure Disks for durable per-pod storage.
+Deployment pods can use Azure Files if shared storage is needed.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+10.	Difference between k8 deployment and replica set. How do different deployments work?
+
+Got it — you’re asking about the difference between Kubernetes (k8s) Deployment and ReplicaSet, plus how different types of Deployments work (in the context of Azure Kubernetes Service, AKS).
+Here’s the breakdown:
+
+1. Deployment vs ReplicaSet in Kubernetes
+Feature	ReplicaSet	Deployment
+Purpose	Ensures a specified number of identical Pods are running at any given time.	Manages ReplicaSets and provides declarative updates to Pods (versioned rollouts & rollbacks).
+Scope	Just maintains Pod count — if a Pod dies, it replaces it.	Defines desired state (image, replicas, strategy) and automatically manages ReplicaSets for rollouts.
+Version Control	No built-in versioning — changing Pod spec replaces Pods abruptly.	Supports rollout history and rollbacks.
+Use Case	Usually created indirectly by a Deployment. Rarely used directly unless you need only a static Pod set without rollouts.	Standard way to run stateless apps in production.
+Management Level	Lower-level abstraction	Higher-level abstraction
+💡 Key Point:
+A Deployment automatically creates and manages a ReplicaSet.
+You almost never need to manage ReplicaSets manually in production — you manage Deployments, which in turn manage ReplicaSets.
+
+2. How Different Deployment Strategies Work
+In AKS (Azure Kubernetes Service), Deployments follow Kubernetes core strategies. Common ones:
+
+a) Rolling Update (default)
+Updates Pods gradually (one or more at a time) while keeping the service running.
+Controlled via:
+maxUnavailable (how many Pods can be down at once)
+maxSurge (how many extra Pods can be created during update)
+Best for: Zero downtime updates in production.
+Example:
+yaml
+Copy
+Edit
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 1
+
+b) Recreate
+Deletes all existing Pods, then creates new ones.
+Causes downtime during the deployment.
+Best for: When new version is incompatible with old version.
+Example:
+yaml
+Copy
+Edit
+strategy:
+  type: Recreate
+
+c) Blue-Green Deployment (implemented outside native Deployment API, often via service switching)
+Run two environments: “blue” (current) and “green” (new).
+After testing green, switch traffic from blue to green instantly.
+In AKS, can be done using:
+Multiple Deployments
+Service selector switching
+Ingress routing
+
+d) Canary Deployment
+Gradually send small % of traffic to the new version before full rollout.
+Achieved in AKS using:
+Multiple Deployments with weighted routing (via Ingress Controller like NGINX or Azure Front Door)
+Progressive delivery tools (Argo Rollouts, Flagger)
+
+✅ Interview Tip:
+If asked "What’s the difference between Deployment and ReplicaSet in AKS?", make sure you emphasize:
+Deployment manages ReplicaSets.
+You use Deployments for rollouts, scaling, and rollback.
+ReplicaSets just ensure Pod count, no rollout logic.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+11.	What is k8 services and explain its types.
+
+In Kubernetes (often abbreviated k8s), a Service is an abstraction that defines a stable way to access a set of Pods.
+
+Pods in Kubernetes are ephemeral — their IP addresses change when they are recreated.
+A Service provides a permanent virtual IP (ClusterIP) or DNS name so that applications or external clients can reliably communicate with your workload.
+Think of a Service as a “network front door” to your Pods.
+Why Services are Needed
+Pods come and go — Services keep the communication stable.
+Load balance traffic between multiple Pods.
+Enable communication inside the cluster and outside to the world.
+Integrate with DNS (myservice.namespace.svc.cluster.local).
+
+Types of Kubernetes Services
+Kubernetes defines 4 main Service types (relevant for Azure DevOps work as well):
+
+1. ClusterIP (Default)
+Purpose: Exposes the Service inside the cluster only.
+Access: No external access; only reachable from within other Pods/Services.
+Use case: Internal microservice communication.
+Example: Database service only used by backend pods.
+yaml
+Copy
+Edit
+type: ClusterIP
+
+2. NodePort
+Purpose: Exposes the Service on a static port on each Node’s IP.
+Access: Can be accessed from outside using <NodeIP>:<NodePort>.
+Use case: Quick external access for testing without a load balancer.
+Notes: Limited to port range 30000–32767 by default.
+yaml
+Copy
+Edit
+type: NodePort
+
+3. LoadBalancer
+Purpose: Provisions an external load balancer from the cloud provider (Azure, AWS, etc.).
+Access: Gets an external IP; routes traffic to NodePort/ClusterIP behind the scenes.
+Use case: Production-grade public services (e.g., web apps).
+In Azure: Creates an Azure Load Balancer automatically.
+yaml
+Copy
+Edit
+type: LoadBalancer
+
+4. ExternalName
+Purpose: Maps a Service to an external DNS name instead of selecting Pods.
+Access: Acts like a CNAME DNS record.
+Use case: Accessing an external service as if it were inside the cluster.
+Example: Using my-db-service to point to database.company.com.
+yaml
+Copy
+Edit
+type: ExternalName
+
+✅ Tip for Azure DevOps interviews:
+Be ready to explain how these integrate with AKS (Azure Kubernetes Service).
+For example, LoadBalancer in AKS creates an Azure Load Balancer, and Azure DNS can handle the service name.
+Also, mention that you can expose applications securely using Ingress + ClusterIP instead of directly using LoadBalancer.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+12.	What is PVC (Persistent Volume Claim)?
+
+In the context of Azure DevOps interviews — especially if the question comes up while discussing Kubernetes (like AKS) — a PVC (Persistent Volume Claim) is a Kubernetes resource that allows pods to request.
+Use persistent storage without having to know the underlying storage details.
+Here’s a clear breakdown:
+
+Definition
+PVC (Persistent Volume Claim) is a request for storage by a Kubernetes pod.
+It is how pods "claim" the use of a Persistent Volume (PV), which represents actual storage (e.g., Azure Disk, Azure Files, NFS).
+Think of it like ordering food in a restaurant:
+PV = the kitchen’s available ingredients (storage capacity already provisioned).
+PVC = your order specifying how much and what type of food you want (storage request).
+How it works in AKS / Azure context
+Pod needs storage (e.g., for logs, database files).
+PVC is created specifying:
+Size (e.g., 10Gi)
+Access mode (ReadWriteOnce, ReadOnlyMany, ReadWriteMany)
+Storage class (e.g., managed-premium for Azure Disk)
+Kubernetes finds a matching PV (or provisions one dynamically if a StorageClass is used).
+The PVC is bound to that PV.
+The Pod mounts the PVC and uses it just like a normal filesystem.
+Why it’s important for Azure DevOps
+When deploying workloads (like databases, apps with state) on AKS, you need persistent storage that survives pod restarts or rescheduling.
+Azure DevOps pipelines often deploy these workloads with Helm charts or YAML manifests that include PVC definitions.
+Using PVCs allows you to abstract away the storage details — developers don’t care if it’s Azure Disk or Azure File; they just specify requirements.
+Key points to mention in an interview
+PVC is a request for persistent storage in Kubernetes.
+Decouples pod storage requests from the actual storage implementation.
+Works with StorageClass for dynamic provisioning in AKS (e.g., managed-premium, azurefile).
+Important for stateful applications in CI/CD pipelines.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+13.	What is ingress? Ingress vs Load Balancer.
+
+Let’s break this down so it’s crystal clear — both from a cloud perspective and an Azure DevOps interview perspective.
+
+1. What is Ingress?
+In Kubernetes (and Azure Kubernetes Service — AKS), an Ingress is:
+A Kubernetes API object that manages external access to services in a cluster, typically HTTP/HTTPS.
+It acts like a smart router — you can define rules for routing traffic to different services based on the request host or path.
+Ingress does not itself handle traffic; it needs an Ingress Controller (like NGINX Ingress Controller or Azure Application Gateway Ingress Controller) to actually process and forward the traffic.
+Example use case:
+You have multiple microservices (/orders, /users, /products) running in AKS. You don’t want a separate public IP for each. Instead, an Ingress lets you use one IP or domain and route paths to the right services.
+
+2. What is a Load Balancer?
+In Azure + Kubernetes context, a Load Balancer:
+Distributes incoming traffic across multiple backend instances.
+Operates at Layer 4 (TCP/UDP) in the OSI model.
+In AKS, a Service of type LoadBalancer will automatically provision an Azure Load Balancer that exposes your app to the internet.
+It does not provide path-based routing or SSL termination logic (unless combined with an Application Gateway).
+Example use case:
+You have a single microservice that needs to be accessed externally. You can expose it via a Load Balancer IP that distributes traffic across all service pods.
+
+3. Key Differences: Ingress vs Load Balancer
+Feature	                            Ingress	                                              Load Balancer
+Purpose	          Smart routing for HTTP/HTTPS traffic into the cluster	    Distributes network traffic across backend instances
+OSI Layer	                    Layer 7 (Application)	                                Layer 4 (Transport)
+Traffic Type	                Primarily HTTP/HTTPS	                                Any TCP/UDP traffic
+Routing	          Path-based (/app1, /app2) or host-based (app1.example.com)	No path/host routing — just forwards traffic
+IP Address	                   One IP for multiple services	                            Usually one IP per service
+Extra Features	               SSL termination, rewrite rules, virtual hosting	        Basic load balancing
+Requires	                    Ingress Controller	                                Backend endpoints (VMs, Pods, etc.)
+
+4. Azure DevOps Interview Angle
+If they ask in an Azure DevOps interview, they might expect you to relate it to AKS and CI/CD:
+Ingress:
+You’d use this when deploying multiple microservices and want to route traffic using a single endpoint, often defined in YAML manifests and deployed via a pipeline.
+Load Balancer:
+You might use this for simpler deployments or non-HTTP workloads, also defined in Kubernetes manifests or Terraform, provisioned automatically by AKS.
+
+✅ Summary Soundbite for Interview:
+"In AKS, a Load Balancer operates at Layer 4 and simply distributes TCP/UDP traffic to your pods, while Ingress operates at Layer 7 and allows HTTP/HTTPS routing rules, SSL termination, and multiple services behind one IP.
+Ingress needs an Ingress Controller, whereas a LoadBalancer-type service provisions an Azure Load Balancer directly."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+14.	What is liveness and readiness probes in k8?
+
+In Kubernetes (K8s), liveness and readiness probes are health checks that help Kubernetes decide when to restart containers or when to send traffic to them.
+For an Azure DevOps interview, you’d want to explain both conceptually and practically, since DevOps engineers often work with YAML deployments and AKS (Azure Kubernetes Service).
+
+1. Liveness Probe
+Purpose: Checks if the container is still running correctly.
+If it fails: Kubernetes restarts the container.
+Use case: Detect deadlocks, stuck processes, or app crashes where the container is running but the app is unresponsive.
+Example:
+yaml
+Copy
+Edit
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+
+2. Readiness Probe
+Purpose: Checks if the container is ready to serve requests.
+If it fails: Kubernetes removes the pod from the Service’s endpoints (no traffic sent), but does not restart the container.
+Use case: Wait until app initialization is complete, DB connections are ready, caches are loaded, etc.
+Example:
+yaml
+Copy
+Edit
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 3
+
+Key Differences
+Feature	Liveness Probe	Readiness Probe
+Checks	Is the container alive?	Is the container ready to handle requests?
+Failure Action	Restart container	Remove from service endpoints
+When Used	Detect runtime failures	Delay traffic until startup completed or temporarily stop traffic
+
+In Azure DevOps / AKS Context
+When deploying to Azure Kubernetes Service via Azure DevOps pipelines, you might include these probes in your Helm charts or YAML manifests.
+They’re crucial for zero-downtime deployments and self-healing in microservices.
+
+💡 Interview Tip: If they ask for a real-world example, you can say:
+“In AKS, we had a microservice that took ~30 seconds to warm up because it had to load large configuration files from Azure Blob Storage.
+Without a readiness probe, Kubernetes started routing traffic immediately, causing errors.
+Adding a readiness probe ensured the service only started receiving traffic once it was truly ready.”
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+15.	Taint & Tolerations. What is node affinity?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+16.	If there are multiple pods in multi nodes in which an application is deployed for high availability, then how can we connect those pods using single endpoint.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+17.	Troubleshooting steps in K8.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+18.	What is Istio in K8?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+19.	Kind of Pods in K8?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+20.	Docker Layer vs Docker image?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+21.	How to expose Docker application to internet?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+22.	Is it recommended to use large size Docker images, say 5+ GB?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+23.	Troubleshoot a K8 pod stuck in pending state.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+24.	How can I describe everything about a K8 Pod [-o wide]?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+25.	How to troubleshoot failing pods in Replica Sets?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+26.	Scaling a K8 deployment automatically &manually?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+27.	Benefits of Microservices & Containerization.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+28.	Can we spin up a Windows container on top of Linux OS or vice-versa?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+29.	How to deploy a Dockerfile using non-root user?
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+30.	Does K8 provide high availability by default?
