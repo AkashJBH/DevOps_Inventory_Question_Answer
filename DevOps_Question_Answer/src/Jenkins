@@ -1,0 +1,872 @@
+1.	What is the structure of a Jenkins file?
+
+Structure of a Jenkinsfile
+A Jenkinsfile is a text file (written in Groovy syntax) that defines the pipeline stages and steps for Jenkins. There are two main syntaxes:
+Declarative Pipeline (recommended) – More structured, easier to read.
+Scripted Pipeline – Fully Groovy-based, more flexible but less structured.
+
+Declarative Pipeline Structure
+groovy
+Copy
+Edit
+pipeline {
+    agent any   // Where to run (any available agent or specific label)
+    environment {
+        VAR_NAME = "value"  // Environment variables
+    }
+    options {
+        timeout(time: 1, unit: 'HOURS')  // Pipeline-wide settings
+    }
+    stages {
+        stage('Build') {
+            steps {
+                echo "Building the project..."
+                sh 'mvn clean install'
+            }
+        }
+        stage('Test') {
+            steps {
+                echo "Running tests..."
+                sh 'mvn test'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo "Deploying application..."
+                sh './deploy.sh'
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
+
+Key Sections:
+pipeline {} → Root block for the whole pipeline.
+agent → Where to run the pipeline.
+environment → Variables accessible across stages.
+options → Global pipeline settings.
+stages {} → Sequence of tasks (each stage can have multiple steps).
+post {} → Actions after pipeline completion (success, failure, always).
+
+Scripted Pipeline Structure
+groovy
+Copy
+Edit
+node {
+    stage('Build') {
+        sh 'mvn clean install'
+    }
+    stage('Test') {
+        sh 'mvn test'
+    }
+    stage('Deploy') {
+        sh './deploy.sh'
+    }
+}
+Uses raw Groovy syntax.
+Offers more flexibility but less readability.
+
+In an Azure DevOps Interview Context
+You might want to connect the dots for the interviewer:
+Jenkinsfile = Groovy syntax for pipeline definition (stored in source control).
+Azure DevOps pipeline = YAML syntax for pipeline definition.
+Both follow the concept of declarative steps → build, test, deploy.
+You could even say:
+"A Jenkinsfile’s structure is similar in spirit to Azure DevOps YAML pipelines: you define agents, variables, stages, and steps, but Jenkins uses Groovy-based syntax while Azure DevOps uses YAML."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+2.	How to use variables in Jenkins?
+
+In a Jenkins + Azure DevOps interview, when they ask "How to use variables in Jenkins?", they usually want you to explain:
+What variables are in Jenkins (environment, custom, parameterized).
+Where they can be set (UI, pipeline code, global config, agents).
+How to access them (syntax).
+How they compare to Azure DevOps variables (if relevant).
+
+1. Types of Variables in Jenkins
+Environment variables — built-in or custom variables available to the build (e.g., BUILD_NUMBER, WORKSPACE).
+Build parameters — user-defined values passed when triggering a job.
+Global environment variables — configured in Manage Jenkins → Configure System.
+Pipeline script variables — declared inside Jenkinsfile (def, env).
+
+2. Ways to Set Variables
+
+a) In Jenkins UI (Freestyle job):
+Manage Jenkins → Configure System → Global properties → Environment variables.
+Inside a job: Configure → Build Environment → Environment variables.
+
+b) In a Jenkins Pipeline (Declarative):
+groovy
+Copy
+Edit
+pipeline {
+    environment {
+        MY_VAR = "Hello"
+        PATH = "$PATH:/opt/tools"
+    }
+    stages {
+        stage('Print') {
+            steps {
+                echo "MY_VAR is ${env.MY_VAR}"
+            }
+        }
+    }
+}
+
+c) In a Jenkins Pipeline (Scripted):
+groovy
+Copy
+Edit
+node {
+    env.MY_VAR = "Hello"
+    echo "MY_VAR is ${env.MY_VAR}"
+}
+
+d) From Parameters:
+groovy
+Copy
+Edit
+pipeline {
+    parameters {
+        string(name: 'BRANCH', defaultValue: 'main', description: 'Git branch to build')
+    }
+    stages {
+        stage('Print') {
+            steps {
+                echo "Building branch ${params.BRANCH}"
+            }
+        }
+    }
+}
+
+e) From Shell Scripts:
+bash
+Copy
+Edit
+export MY_VAR="From shell"
+Then in Jenkinsfile:
+groovy
+Copy
+Edit
+sh 'echo $MY_VAR'
+3. Accessing Variables
+Groovy / Jenkinsfile: ${env.VAR_NAME}
+Shell Step: $VAR_NAME
+Batch Step (Windows): %VAR_NAME%
+
+4. Key Differences vs Azure DevOps
+Azure DevOps variables are often YAML-based and accessed via $(VAR_NAME).
+Jenkins uses env.VAR_NAME in Groovy and $VAR_NAME in shell.
+In Azure DevOps, variables are stored in variable groups or pipeline YAML; in Jenkins, they're set in environment blocks, UI, or parameters.
+
+✅ Quick interview tip:
+If they ask "How do you use variables in Jenkins?", structure your answer:
+"Jenkins supports environment variables, build parameters, and pipeline variables.
+You can set them globally, per job, or inside a Jenkinsfile using the environment directive.
+Access them in Groovy with env.VAR_NAME and in shell with $VAR_NAME.
+In Azure DevOps the concept is similar, but the syntax is $(VAR_NAME)."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+3.	What are the different stages in Jenkins?
+
+In an Azure DevOps interview, if they ask you about "different stages in Jenkins", they’re usually trying to see if you understand how Jenkins pipelines work — because in DevOps, Jenkins is still widely used for CI/CD automation.
+Here’s a clear, interview-ready breakdown:
+
+Stages in Jenkins
+In Jenkins, stages are logical divisions of a pipeline, representing major steps in the CI/CD process. They help visualize and control workflow execution.
+A typical Jenkins pipeline has these common stages (though names can vary depending on the project):
+Source / Checkout
+Pull code from a source control system (Git, Azure Repos, GitHub, Bitbucket, etc.).
+Example:
+groovy
+Copy
+Edit
+stage('Checkout') {
+    steps {
+        git 'https://github.com/user/repo.git'
+    }
+}
+Build / Compile
+Compile the source code, install dependencies, run code generators, etc.
+Example: Maven/Gradle for Java, npm/yarn for JavaScript, dotnet build for .NET.
+Unit Testing
+Run automated unit tests to verify functionality at the smallest component level.
+Failing here usually stops the pipeline.
+Static Code Analysis
+Tools like SonarQube, Checkstyle, ESLint, etc., to detect bugs, code smells, and vulnerabilities.
+Packaging / Artifact Creation
+Create deployable artifacts (e.g., JAR, WAR, Docker image, NuGet package).
+Store them in an artifact repository (Nexus, Artifactory, Azure Artifacts).
+Integration & Functional Testing
+Test how different modules work together.
+Could include API tests, UI automation, or containerized test environments.
+Staging Deployment
+Deploy to a staging/QA environment for validation before production.
+User Acceptance Testing (UAT) (Optional)
+Often manual or semi-automated.
+Approved builds then move forward.
+Production Deployment
+Deploy to live environment, possibly with blue-green or canary deployment strategies.
+Post-Deployment Verification
+Health checks, smoke tests, monitoring hooks.
+
+How This Ties to Azure DevOps
+If they ask in the Azure DevOps context:
+Azure Pipelines also uses stages in YAML (similar to Jenkins).
+The concept is the same: logical grouping of jobs and steps.
+Showing that you understand the parallel helps demonstrate adaptability.
+
+✅ Tip for interviews:
+If asked “What are the different stages in Jenkins?”, don’t just list them — also mention that stages are configurable based on project needs.
+That shows you understand the flexibility, not just the textbook answer.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+4.	Access Control in Jenkins (Ex: One person shouldn’t be able to execute/update the pipeline of another user)
+
+Core Concept
+In Jenkins, access control is managed through:
+Authentication – verifying who the user is.
+Authorization – deciding what the user can do.
+For your example:
+"One person shouldn’t be able to execute/update the pipeline of another user."
+That means restricting both "Build" and "Configure" permissions on a per-project basis.
+
+How to Achieve This in Jenkins
+
+1. Enable Security
+Go to: Manage Jenkins → Configure Global Security
+Enable "Enable Security" and set up authentication (LDAP, Active Directory, Jenkins’ own user database, or SSO).
+
+2. Choose Authorization Strategy
+The most common choice here is:
+Project-based Matrix Authorization Strategy
+Install/enable the Matrix Authorization Strategy plugin if not already present.
+
+3. Configure Roles and Permissions
+Using the Role-based Authorization Strategy plugin (more flexible than just Matrix):
+Go to Manage Jenkins → Manage and Assign Roles
+Define Global Roles (e.g., admin, developer)
+Define Project Roles (e.g., projectA-dev) and apply regex patterns to match specific jobs/pipelines.
+Assign:
+"Build" and "Configure" only to the owner for their project.
+Deny others access to these permissions for that job.
+Example:
+Permission	Alice (Project A)	Bob (Project B)
+Read	            ✅	                ❌
+Build	            ✅	                ❌
+Configure	        ✅	                ❌
+
+4. Folder-level Security (Optional)
+If you organize jobs into folders (via the Folders Plugin):
+Set folder-specific permissions so only that project's members can see/build/configure jobs inside.
+This is easier to manage for large orgs.
+
+5. Azure DevOps Parallels
+In Azure DevOps Pipelines:
+You can achieve the same with security at the pipeline and folder level in Project Settings.
+You’d restrict "Edit" and "Run" permissions to the owner/team, similar to Jenkins’ project role mapping.
+So if they ask for Azure DevOps:
+“I’d apply RBAC to pipelines and repositories, giving ‘Contribute’ and ‘Run’ rights only to authorized users for each pipeline. In Jenkins, that’s achieved with Role-based Authorization Strategy and folder/project-based permissions.”
+
+Key Takeaways for Interview
+Mention authentication and authorization separately.
+Highlight role-based access control (RBAC) as the method.
+Give both Jenkins and Azure DevOps analogies.
+Stress principle of least privilege — only the necessary permissions to the necessary people.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+5.	Access Control in Jenkins.
+
+1. Authentication (Who are you?)
+Purpose: Verify user identity before allowing access.
+Options in Jenkins:
+Jenkins’ own user database (local users, passwords).
+External authentication providers:
+LDAP / Active Directory (common in enterprise/Azure setups).
+SSO via Azure AD using plugins like Azure AD plugin.
+GitHub, Google, or other OAuth providers.
+
+2. Authorization (What can you do?)
+Controlled via Authorization Strategies in Jenkins (in Manage Jenkins → Configure Global Security).
+Common strategies:
+Matrix-based security
+Fine-grained permissions for users/groups (e.g., build, configure, administer).
+Can be global or project-specific.
+Project-based Matrix Authorization
+Different permissions per job/folder.
+Role-Based Strategy Plugin
+Define roles (e.g., “Developer”, “Release Manager”, “Admin”).
+Assign roles to users or groups.
+Logged-in users can do anything (not secure for enterprise use).
+Anyone can do anything (only for local sandbox/demo).
+
+3. Principle of Least Privilege
+Assign the minimum required permissions to each user.
+Restrict:
+Job creation/deletion.
+Pipeline configuration.
+Access to credentials and secrets.
+Agent node configuration.
+
+4. Integration with Azure DevOps Security
+In a hybrid Azure DevOps + Jenkins environment:
+Use Azure AD for single sign-on so Jenkins respects corporate identity.
+Map Azure AD groups to Jenkins roles.
+Restrict sensitive jobs (e.g., deployment pipelines) to specific DevOps groups.
+
+5. Auditing & Monitoring
+Enable Audit Trail Plugin or Job Config History Plugin for tracking:
+Who changed what and when.
+Job runs and their initiators.
+Store Jenkins logs in a central logging solution (e.g., Azure Monitor, Log Analytics).
+
+Sample concise interview answer:
+"Access control in Jenkins is managed in two parts — authentication and authorization.
+Authentication verifies identity, often via Jenkins’ own database or corporate SSO like Azure AD.
+Authorization controls what actions each user can perform, using strategies like matrix-based security or role-based plugins.
+In an enterprise Azure DevOps environment, we integrate Jenkins with Azure AD for centralized identity, assign roles to AD groups, and follow the principle of least privilege to restrict sensitive operations.
+We also enable auditing to track all access and changes."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+6.	Jenkins server setup.
+
+When an Azure DevOps interview asks about “Jenkins server setup”, they’re usually checking if you understand:
+How Jenkins works
+How to install and configure it (either on-prem or in the cloud)
+How to integrate it with Azure services
+
+Here’s how you can answer in a structured, interview-friendly way:
+
+1. Overview
+“Jenkins is an open-source automation server used for CI/CD. Setting up Jenkins involves provisioning the server, installing Jenkins, configuring tools and agents, then integrating it with source control and deployment targets.”
+
+2. Step-by-Step Jenkins Server Setup
+
+A. Provision a server
+Azure VM: Create a Linux or Windows VM (common: Ubuntu LTS).
+Assign static public IP, open firewall ports (8080 for UI, 22 for SSH).
+Alternatively, use a container (Azure Container Instance, Kubernetes pod).
+
+B. Install Jenkins
+On Linux (Ubuntu example):
+bash
+Copy
+Edit
+sudo apt update
+sudo apt install openjdk-11-jdk -y
+wget -q -O - https://pkg.jenkins.io/debian/jenkins.io.key | sudo apt-key add -
+sudo sh -c 'echo deb http://pkg.jenkins.io/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
+sudo apt update
+sudo apt install jenkins -y
+sudo systemctl enable jenkins
+sudo systemctl start jenkins
+Verify: http://<server-ip>:8080
+
+C. Initial configuration
+Retrieve initial admin password:
+bash
+Copy
+Edit
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+Install suggested plugins.
+Create admin user.
+
+D. Configure tools & environment
+Set JAVA_HOME, Maven, NodeJS, etc. in Jenkins global tool configuration.
+Configure credentials (Azure service principal, SSH keys, Git tokens).
+
+E. Set up agents (optional but important for scale)
+Jenkins can run builds on:
+Master node (default — not best practice for heavy builds)
+Agent nodes (Azure VMs, Kubernetes pods, Docker containers)
+
+F. Integrate with Azure
+Install Azure DevOps plugin (or Azure CLI plugin).
+Configure Jenkins to pull code from Azure Repos or GitHub.
+Use Azure CLI or Azure Service Principal credentials for deployments.
+Common integrations:
+Build & push Docker image to Azure Container Registry.
+Deploy to Azure Web App, AKS, or VMs.
+
+G. Create a pipeline
+Freestyle project or Declarative Pipeline (Jenkinsfile).
+Example:
+groovy
+Copy
+Edit
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'az webapp deployment source config-zip --name myapp --resource-group myrg --src target/myapp.zip'
+            }
+        }
+    }
+}
+
+3. Best Practices to Mention in an Interview
+Use Infrastructure as Code (Terraform, ARM templates) to provision Jenkins in Azure.
+Run Jenkins in high availability mode (Kubernetes + Jenkins Helm chart).
+Secure with HTTPS, reverse proxy (NGINX/Apache), and restricted credentials.
+Keep plugins updated to avoid vulnerabilities.
+Backup JENKINS_HOME (configurations, jobs, plugins).
+Use pipeline-as-code (Jenkinsfile in repo) for version control.
+Integrate with Azure Key Vault for secrets management.
+
+✅ Pro Tip for the Interview:
+If they specifically say "Azure DevOps context", emphasize integration — they want to see that you can connect Jenkins to Azure services, not just install Jenkins locally.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+7.	How to run parallel repo cloning (or anything) steps in Jenkins Pipeline?
+
+In a Jenkins Pipeline (especially when interviewing for an Azure DevOps–type role), running things like repo cloning or build steps in parallel usually comes down to using the parallel directive.
+Here’s how it works and what you should mention in an interview:
+
+1. The Core Idea
+Jenkins Pipelines allow you to run multiple stages or steps at the same time to save build time.
+This is done with the parallel keyword in a scripted pipeline or directly in a declarative pipeline block.
+Common use case: cloning multiple repos, running tests for different microservices, cross-platform builds, etc.
+
+2. Example: Parallel Repo Cloning
+groovy
+Copy
+Edit
+pipeline {
+    agent any
+    stages {
+        stage('Clone Repositories in Parallel') {
+            parallel {
+                stage('Clone Repo A') {
+                    steps {
+                        git url: 'https://github.com/org/repo-a.git', branch: 'main'
+                    }
+                }
+                stage('Clone Repo B') {
+                    steps {
+                        git url: 'https://github.com/org/repo-b.git', branch: 'develop'
+                    }
+                }
+                stage('Clone Repo C') {
+                    steps {
+                        git url: 'https://github.com/org/repo-c.git', branch: 'release'
+                    }
+                }
+            }
+        }
+    }
+}
+
+Key points:
+Each stage inside parallel {} runs in its own executor on the Jenkins node(s).
+This reduces total time vs. sequential execution.
+Good for Azure DevOps comparison: works similarly to parallel jobs/stages in Azure Pipelines YAML.
+
+3. Scripted Pipeline Version
+If they ask for scripted pipeline:
+groovy
+Copy
+Edit
+node {
+    parallel(
+        "Repo A": {
+            git url: 'https://github.com/org/repo-a.git', branch: 'main'
+        },
+        "Repo B": {
+            git url: 'https://github.com/org/repo-b.git', branch: 'develop'
+        },
+        "Repo C": {
+            git url: 'https://github.com/org/repo-c.git', branch: 'release'
+        }
+    )
+}
+
+4. Interview Tips
+When answering, you should highlight:
+Why parallel? → Reduces CI/CD time, especially for microservices or multi-platform builds.
+Resource awareness → Parallel steps need enough executors/nodes.
+Failure handling → Use failFast: true to stop others when one fails:
+groovy
+Copy
+Edit
+parallel failFast: true, ...
+Azure DevOps comparison → In Azure Pipelines YAML, you’d use jobs or strategy: parallel for similar behavior.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+8.	Explain a Jenkins CI/CD PL e2e.
+
+1. Understanding the Question
+They’re basically asking:
+“Walk me through an end-to-end Jenkins CI/CD pipeline — what it does, how it works, and what components are involved — possibly in relation to Azure DevOps practices.”
+This is a storytelling + technical architecture question. They want:
+Your understanding of Jenkins pipeline concepts (CI, CD).
+The sequence of events from code commit → deployment.
+Integration points (Azure, cloud, artifacts, approvals, etc.).
+Best practices you’d follow.
+
+2. Jenkins CI/CD End-to-End Flow
+I’ll break it into stages:
+
+Stage 0 – Source Control
+Developer commits code to a repository (GitHub, Bitbucket, Azure Repos, etc.).
+Jenkins is configured with a webhook so that a commit or pull request triggers the pipeline.
+
+Stage 1 – CI (Continuous Integration)
+Trigger:
+Webhook → Jenkins job starts automatically.
+Checkout code:
+Jenkins pulls the latest code from Git.
+Build stage:
+Uses tools like Maven, Gradle, npm, etc., depending on the project.
+Static code analysis (optional but recommended):
+SonarQube, Checkstyle, ESLint.
+Unit tests:
+Runs automated unit tests; collects test reports.
+Package artifact:
+Compiles output into build artifacts (e.g., JAR, WAR, Docker image).
+Store artifacts:
+Upload to artifact repository (Nexus, Artifactory, Azure Artifacts).
+CI result:
+Pass/fail status posted back to repo (PR checks).
+
+Stage 2 – CD (Continuous Delivery / Deployment)
+Deploy to staging/test environment:
+Jenkins uses plugins or scripts (Ansible, Helm, Azure CLI, Terraform) to deploy.
+Could be to Azure Web App, AKS, Azure VM, etc.
+Integration tests:
+API tests, UI tests (Selenium, Cypress).
+Manual approval gate (for prod):
+Jenkins pipeline pauses and waits for human approval (or Azure DevOps approval if integrated).
+Deploy to production:
+Jenkins triggers final deployment using infrastructure scripts or cloud plugins.
+
+Stage 3 – Post-Deployment
+Smoke tests: Basic checks to confirm app is running.
+Notifications: Slack, Teams, email updates.
+Rollback strategy: Canary, blue-green deployment, or rollback to previous build.
+
+3. Jenkins Pipeline Types
+Freestyle job: Older, GUI-based configuration.
+Pipeline as Code (recommended):
+Jenkinsfile stored in repo.
+Declarative or scripted pipeline syntax.
+Example Declarative Jenkinsfile snippet:
+groovy
+Copy
+Edit
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn test'
+            }
+        }
+        stage('Package') {
+            steps {
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                sh 'az webapp deploy --resource-group myRG --name myApp --src-path target/myapp.jar'
+            }
+        }
+    }
+}
+
+4. Relating to Azure DevOps
+Even though Jenkins is independent, in an Azure DevOps context:
+Source: Azure Repos → Jenkins builds from it.
+Artifacts: Jenkins can publish to Azure Artifacts.
+Infrastructure: Jenkins can deploy to Azure (App Service, AKS, Functions).
+Approvals: Azure DevOps release gates can integrate with Jenkins builds.
+Hybrid pipelines: Sometimes Jenkins handles CI, Azure Pipelines handles CD.
+
+5. How to Answer in Interview
+Structure your answer like:
+Trigger: Code push in Git → Webhook to Jenkins.
+CI: Pull → Build → Test → Package → Store artifacts.
+CD: Deploy to staging → Test → Approve → Deploy to prod.
+Azure Tie-in: Mention how Jenkins integrates with Azure services.
+Best practices: Pipeline as code, parallelization, quality gates, rollback plan.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+9.	Types of parameters in Jenkins
+
+In Jenkins, when you configure a parameterized build, there are several types of parameters you can use to pass values into a job.
+For an Azure DevOps–focused interview, they usually expect you to know the parameter types and when to use them — since pipelines in both Jenkins and Azure DevOps support similar concepts.
+Here’s a clear breakdown:
+
+1. String Parameter
+Description: Takes a single line of text as input.
+Use Case: Passing environment names (dev, staging, prod) or API keys.
+UI: A simple text box.
+
+2. Choice Parameter
+Description: Provides a dropdown list of predefined values.
+Use Case: Selecting a build type (Debug, Release) or branch name.
+UI: Dropdown menu.
+
+3. Boolean Parameter
+Description: True/false (checkbox) option.
+Use Case: Toggle whether to run certain steps (e.g., run tests or skip tests).
+
+4. Multi-line String Parameter
+Description: Similar to string but allows multiple lines.
+Use Case: Passing large JSON configs, SQL queries, or script blocks.
+
+5. Password Parameter
+Description: A masked input for sensitive values.
+Use Case: API tokens, passwords, or secret keys.
+
+6. File Parameter
+Description: Lets the user upload a file at build time.
+Use Case: Upload config files, certificates, or datasets to be used in the job.
+
+7. Run Parameter (Pipeline-specific)
+Description: Lets you select a build from another project/job.
+Use Case: Triggering downstream builds with reference to a specific upstream build.
+
+8. Active Choices Parameter (via Active Choices Plugin)
+Description: Dynamically generated parameters using Groovy scripts.
+Use Case: Populate a dropdown list based on another parameter or external data.
+
+✅ Interview Tip
+If they link this to Azure DevOps, you can say:
+
+“In Jenkins, parameters allow user input before running a job — similar to pipeline variables in Azure DevOps.
+Both can be used for environment selection, feature toggles, and dynamic build customization.”
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+10.	How can I add new Windows/Linux node in Jenkins?
+
+In an Azure DevOps–focused interview, when they ask "How can you add a new Windows/Linux node in Jenkins?", they’re really checking if you understand Jenkins master–agent architecture, agent setup steps, and platform-specific configurations.
+Here’s a structured answer you could give:
+
+1. Understanding the Context
+Jenkins uses a controller (master) to manage the UI, jobs, and configuration.
+Nodes (agents) run build jobs.
+Adding a new node means configuring an agent machine (Windows or Linux) to connect to the Jenkins controller.
+
+2. Steps to Add a New Node
+On Jenkins Controller (UI side)
+Log in to Jenkins with admin rights.
+Go to: Manage Jenkins → Nodes & Clouds → New Node.
+Enter:
+Node name (e.g., linux-agent-01 or windows-agent-01)
+Permanent Agent (not temporary).
+Configure:
+Remote root directory – path on the agent where Jenkins stores workspace files.
+Labels – for job targeting (e.g., linux, windows, build, deploy).
+Usage – whether the node is exclusive for certain jobs or can run anything.
+Launch method – key difference between Windows and Linux agents.
+
+3. Platform-Specific Setup
+For Linux Node
+Launch method: “Launch agents via SSH”.
+Requirements:
+SSH access from Jenkins controller to Linux node.
+Java installed on agent (java -version should work).
+Create a Jenkins service account on the agent.
+Provide SSH credentials in Jenkins credentials store.
+Jenkins will SSH into the machine, copy the agent.jar, and start the agent.
+For Windows Node
+Common launch methods:
+"Launch agent via Java Web Start" – download agent.jar and run manually or as a service.
+"Launch agent via Windows service" – Jenkins can install itself as a service.
+Requirements:
+Java installed on the agent.
+Allow network access between controller and Windows node.
+If using RDP to install manually, download from: http://<jenkins-url>/computer/<node-name>/slave-agent.jnlp.
+
+4. Post-Setup Validation
+In Jenkins UI, the node status should show online with a green check.
+Run a small freestyle job targeted to the new node using its label.
+Check console logs for connectivity or permission errors.
+
+5. Azure DevOps Context
+If they’re tying this to Azure DevOps pipelines:
+The agent machine could be an Azure VM (Windows or Linux).
+You might provision it via Terraform/ARM/Bicep or Azure CLI.
+You’d ensure:
+The VM has Java installed.
+Jenkins controller can connect via SSH (Linux) or WinRM/RDP (Windows).
+Security groups/firewalls allow agent communication.
+
+✅ Example Short Answer for Interview
+"To add a new Linux or Windows node in Jenkins, I go to Manage Jenkins → Nodes → New Node, configure the node name, remote directory, labels, and choose a launch method — SSH for Linux or Java Web Start/Windows service for Windows.
+For Linux, I set up an SSH user with Java installed, add SSH credentials in Jenkins, and let Jenkins handle the connection. For Windows, I either run the agent.jar via Java Web Start or install the Jenkins service, ensuring Java and network access are ready.
+In Azure, this often means provisioning an Azure VM, opening the correct ports, and installing Java before linking it to Jenkins."
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+11.	What are shared libraries and why/how are they useful?
+
+In an Azure DevOps interview, “shared libraries” usually refers to reusable components or code modules that can be consumed by multiple pipelines, services, or applications, so you don’t have to duplicate logic across projects.
+
+Here’s a breakdown so you can answer clearly and confidently:
+
+1. What are Shared Libraries?
+General Definition
+A shared library is a set of pre-written, reusable functions, scripts, templates, or binaries stored in a central location, which multiple projects or pipelines can reference.
+In Azure DevOps Context
+Could mean Pipeline Libraries (variable groups, secure files, and scripts) used across multiple Azure Pipelines.
+Could also mean Code Libraries (like NuGet, npm, Maven packages) hosted in Azure Artifacts and used in multiple apps/services.
+Could refer to Template Repositories (YAML pipeline templates stored centrally).
+
+2. Why Are They Useful?
+Reusability – Avoid rewriting the same logic in every pipeline.
+Maintainability – Change code in one place, all consumers get the update.
+Consistency – Standardize build, deploy, and test processes.
+Security – Centralize secrets (via variable groups or secure files) so they aren’t duplicated or exposed.
+Version Control – Libraries can be versioned, so pipelines can pin to stable releases.
+
+3. How Are They Used in Azure DevOps?
+a) Pipeline Shared Libraries
+Variable Groups
+Store key/value pairs (including secrets) and link them to multiple pipelines.
+Secure Files
+Store certificates, config files, or license keys for shared use.
+YAML Templates
+Create a steps-template.yml file in a shared repo and import it into multiple pipelines:
+yaml
+Copy
+Edit
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: org/shared-templates
+jobs:
+  - template: build-and-deploy.yml@templates
+b) Code Libraries via Azure Artifacts
+Publish common business logic as NuGet/npm/Maven packages.
+Pipelines pull the package from Azure Artifacts feed for builds.
+
+4. Real Example in DevOps
+Imagine you have 5 microservices that all:
+Run the same static code analysis
+Build with the same dotnet build options
+Deploy with the same Helm chart process
+Instead of duplicating steps in each pipeline:
+Store these steps in a YAML template in a shared repo.
+Reference it from each service’s pipeline.
+Update only the shared template when the process changes.
+
+💡 Pro Interview Tip:
+If they ask about “shared libraries” in DevOps, clarify whether they mean pipeline shared libraries or application code libraries.
+Then answer both briefly — it shows you understand DevOps from both a CI/CD and software engineering perspective.
+
+_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
+12.	How to configure Git in Jenkins?
+
+Step-by-Step Answer
+1. Install and Configure Git in Jenkins
+Install Git on the Jenkins server
+On Linux:
+bash
+Copy
+Edit
+sudo apt-get update
+sudo apt-get install git
+On Windows: Install Git for Windows and add it to the PATH.
+Verify Git installation in Jenkins
+Go to: Manage Jenkins → Global Tool Configuration → Git
+Add the Git installation path (e.g., /usr/bin/git or C:\Program Files\Git\bin\git.exe).
+Check “Install automatically” if you want Jenkins to handle installation.
+
+2. Install Git Plugins
+Go to Manage Jenkins → Plugins → Available
+Install:
+Git plugin
+(Optional for Azure DevOps) Azure DevOps Plugin or Azure Repos Git Plugin
+
+3. Add Git Credentials to Jenkins
+Go to Manage Jenkins → Credentials → Global → Add Credentials
+Choose:
+Username & Password → for HTTPS with Azure DevOps username + Personal Access Token (PAT) as password.
+SSH Username with Private Key → for SSH-based Git authentication.
+Azure DevOps Tip
+Generate a PAT in Azure DevOps (User Settings → Personal Access Tokens) with Code → Read/Write scope.
+Use that PAT in Jenkins credentials.
+
+4. Configure Jenkins Job to Use Git
+Create a Freestyle Project or Pipeline job.
+In the Source Code Management section:
+Select Git.
+Enter Repository URL:
+For Azure DevOps HTTPS:
+bash
+Copy
+Edit
+https://dev.azure.com/{organization}/{project}/_git/{repo}
+For SSH:
+swift
+Copy
+Edit
+git@ssh.dev.azure.com:v3/{organization}/{project}/{repo}
+Select the credentials you added earlier.
+Specify branch (e.g., main).
+
+5. For Pipeline Jobs
+Example Jenkinsfile for Azure DevOps Git checkout:
+groovy
+Copy
+Edit
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://dev.azure.com/orgname/projectname/_git/reponame',
+                    credentialsId: 'azure-devops-git-creds'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Building..."
+            }
+        }
+    }
+}
+
+6. Testing
+Run the job.
+Jenkins will fetch the code from Azure Repos via Git and proceed with the build.
+
+✅ Key points to mention in interview
+Git must be installed and its path configured in Jenkins.
+Git plugin is required for integration.
+Authentication via PAT or SSH for Azure DevOps.
+Repository URL format differs for HTTPS vs SSH.
+Credentials must be securely stored in Jenkins.
+For pipelines, use git step with credentialsId.
