@@ -20,33 +20,20 @@ A: DNS hosting service that lets you manage DNS zones and records using Azure in
 
 7️⃣ Q: Types of Azure Storage?
 A:
-
 Blob (unstructured data, files)
-
 File (SMB file shares)
-
 Queue (messaging)
-
 Table (NoSQL key-value).
-
 Replication options: LRS, ZRS, GRS, GZRS.
 
 8️⃣ Q: What’s the difference between LRS, GRS, ZRS, GZRS?
-A:
-
-LRS: 3 copies in one region.
-
+A:LRS: 3 copies in one region.
 ZRS: 3 copies across zones in same region.
-
 GRS: LRS + geo-replicated region.
-
 GZRS: ZRS + geo-replication.
 
 9️⃣ Q: What’s the difference between Azure Load Balancer and Application Gateway?
-A:
-
-LB: Layer 4 (TCP/UDP) traffic, distributes load.
-
+A:LB: Layer 4 (TCP/UDP) traffic, distributes load.
 App Gateway: Layer 7, supports SSL termination, path-based routing, WAF.
 
 🔟 Q: What are Deployment Slots in Azure Function App?
@@ -64,25 +51,18 @@ A: Automates deployment across environments (Dev→QA→Prod), using artifacts f
 A: Downloads providers, initializes backend, and prepares working directory.
 
 14️⃣ Q: terraform init vs terraform plan
-A:
-
-init: Setup providers/backend.
-
+A:init: Setup providers/backend.
 plan: Shows proposed changes (execution plan) before applying.
 
 15️⃣ Q: Purpose of Terraform state file?
 A: Keeps track of existing infrastructure so Terraform knows what to add/change/destroy.
 
 16️⃣ Q: How to recover a deleted state file?
-A:
-
-If remote backend (S3/Azure Blob) → restore previous version.
-
+A:If remote backend (S3/Azure Blob) → restore previous version.
 If local → use terraform import to rebuild state manually.
 
 17️⃣ Q: What is count in Terraform?
 A: Used to create multiple instances of a resource dynamically.
-
 count = 3
 name  = "vm-${count.index}"
 
@@ -117,10 +97,7 @@ A: Persistent storage attached to containers or pods; in K8s defined via Persist
 A: Logical clusters for resource isolation within a physical cluster.
 
 27️⃣ Q: K8s Deployment vs StatefulSet?
-A:
-
-Deployment: Stateless apps.
-
+A:Deployment: Stateless apps.
 StatefulSet: Maintains stable IDs & storage for stateful apps.
 
 28️⃣ Q: K8s Deployment vs ReplicaSet?
@@ -133,20 +110,14 @@ A: Expose Pods to network. Types: ClusterIP (internal), NodePort, LoadBalancer, 
 A: Layer-7 entry point for HTTP/HTTPS traffic, supports host/path-based routing.
 
 31️⃣ Q: What are liveness and readiness probes?
-A:
-
-Liveness: Checks if container should restart.
-
+A:Liveness: Checks if container should restart.
 Readiness: Checks if container is ready to receive traffic.
 
 32️⃣ Q: What are Taints & Tolerations?
 A: Mechanism to control pod scheduling on specific nodes.
 
 33️⃣ Q: How to scale a deployment in K8s?
-A:
-
-Manual: kubectl scale deployment <name> --replicas=5
-
+A:Manual: kubectl scale deployment <name> --replicas=5
 Auto: Horizontal Pod Autoscaler (HPA).
 
 34️⃣ Q: How to troubleshoot a pending pod?
@@ -159,7 +130,6 @@ A: Use Service Connection (Service Principal) in Project Settings → Service Co
 
 36️⃣ Q: How to handle multiple languages (Java/C#/Python) in same repo?
 A: Use conditional stages in YAML:
-
 condition: contains(variables['Build.ChangedFiles'], 'src/java')
 
 
@@ -184,14 +154,9 @@ A: Publishing test results, code coverage, security scans, artifact uploads, and
 🧠 Scripting / Automation / DevSecOps (8 Qs)
 
 43️⃣ Q: How can applications authenticate to Azure Storage?
-A:
-
-Access Key
-
+A:Access Key
 Shared Access Signature (SAS)
-
 Azure AD (Managed Identity)
-
 Service Principal
 Recommended: use Managed Identity for least privilege.
 
@@ -205,17 +170,12 @@ A: Use database replication tools (MongoDB replica sets, pglogical, AWS DMS/Azur
 A: Use Scope actions + Run After conditions (hasFailed, hasTimedOut).
 
 47️⃣ Q: Trigger vs Action in Logic Apps?
-A:
-
-Trigger: Event that starts the workflow.
-
+A:Trigger: Event that starts the workflow.
 Action: Task performed once triggered.
 
 48️⃣ Q: How to store sensitive info in Terraform?
 A:
-
 sensitive = true
-
 Store in Azure Key Vault, environment variables, or backend variables.
 
 49️⃣ Q: How to enforce Git commit message template?
