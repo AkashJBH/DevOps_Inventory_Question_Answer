@@ -1,0 +1,225 @@
+☁️ Azure & Cloud Fundamentals (12 Qs)
+
+1️⃣ Q: How can you attach a subnet to a VM in Azure?
+A: A subnet is linked through the VM’s Network Interface (NIC) → configure NIC → set subnet under Virtual Network. You can reassign NIC to a different subnet if needed.
+
+2️⃣ Q: How can you attach a subnet to an NSG?
+A: Go to Network Security Group → Settings → Subnets → Associate, choose the VNet & subnet.
+
+3️⃣ Q: What is AKS?
+A: Azure Kubernetes Service – a managed Kubernetes platform that automates node provisioning, scaling, upgrades, and integrates with Azure Monitor, ACR, and AD for authentication.
+
+4️⃣ Q: What is an NSG?
+A: Network Security Group filters inbound/outbound traffic for subnets or NICs using security rules (based on IP, port, protocol, priority).
+
+5️⃣ Q: What is a NAT Gateway?
+A: Provides outbound internet access for private subnets using a single static public IP without exposing internal resources.
+
+6️⃣ Q: What is Azure DNS?
+A: DNS hosting service that lets you manage DNS zones and records using Azure infrastructure (supports public & private zones).
+
+7️⃣ Q: Types of Azure Storage?
+A:
+
+Blob (unstructured data, files)
+
+File (SMB file shares)
+
+Queue (messaging)
+
+Table (NoSQL key-value).
+
+Replication options: LRS, ZRS, GRS, GZRS.
+
+8️⃣ Q: What’s the difference between LRS, GRS, ZRS, GZRS?
+A:
+
+LRS: 3 copies in one region.
+
+ZRS: 3 copies across zones in same region.
+
+GRS: LRS + geo-replicated region.
+
+GZRS: ZRS + geo-replication.
+
+9️⃣ Q: What’s the difference between Azure Load Balancer and Application Gateway?
+A:
+
+LB: Layer 4 (TCP/UDP) traffic, distributes load.
+
+App Gateway: Layer 7, supports SSL termination, path-based routing, WAF.
+
+🔟 Q: What are Deployment Slots in Azure Function App?
+A: Separate runtime environments (e.g., staging, production) for zero-downtime deployment & A/B testing.
+
+1️⃣1️⃣ Q: What are Quality Gates in Azure Pipelines?
+A: Checks (like SonarQube code quality, coverage, approvals) that must pass before promotion or release.
+
+1️⃣2️⃣ Q: What is a Release Pipeline?
+A: Automates deployment across environments (Dev→QA→Prod), using artifacts from build pipeline and triggers, approvals, and tasks.
+
+🏗️ Terraform (12 Qs)
+
+13️⃣ Q: What does terraform init do?
+A: Downloads providers, initializes backend, and prepares working directory.
+
+14️⃣ Q: terraform init vs terraform plan
+A:
+
+init: Setup providers/backend.
+
+plan: Shows proposed changes (execution plan) before applying.
+
+15️⃣ Q: Purpose of Terraform state file?
+A: Keeps track of existing infrastructure so Terraform knows what to add/change/destroy.
+
+16️⃣ Q: How to recover a deleted state file?
+A:
+
+If remote backend (S3/Azure Blob) → restore previous version.
+
+If local → use terraform import to rebuild state manually.
+
+17️⃣ Q: What is count in Terraform?
+A: Used to create multiple instances of a resource dynamically.
+
+count = 3
+name  = "vm-${count.index}"
+
+
+18️⃣ Q: How to conditionally update or skip resource based on tag?
+A: Use count or for_each with condition, or lifecycle { ignore_changes = [...] }.
+
+19️⃣ Q: How to use existing resource in TF (import)?
+A: terraform import <resource> <resource_id> then refresh with terraform plan.
+
+20️⃣ Q: What are Terraform modules?
+A: Reusable units of Terraform code that standardize infrastructure components.
+
+21️⃣ Q: What is a workspace in Terraform?
+A: Isolated state environments (e.g., dev, test, prod) within same configuration.
+
+22️⃣ Q: How to handle multiple developers with same state file?
+A: Use remote backend (Azure Blob + state locking) to avoid conflicts.
+
+23️⃣ Q: How does Terraform support immutable infrastructure?
+A: Updates replace resources rather than modify them in-place, ensuring predictable state.
+
+24️⃣ Q: How to connect to Azure without storing credentials locally?
+A: Use Managed Identity or Service Principal + environment variables / Azure CLI authentication.
+
+🐳 Docker & Kubernetes (AKS) (10 Qs)
+
+25️⃣ Q: What is a volume in Docker/K8s?
+A: Persistent storage attached to containers or pods; in K8s defined via PersistentVolume (PV) and PersistentVolumeClaim (PVC).
+
+26️⃣ Q: What are Namespaces in K8s?
+A: Logical clusters for resource isolation within a physical cluster.
+
+27️⃣ Q: K8s Deployment vs StatefulSet?
+A:
+
+Deployment: Stateless apps.
+
+StatefulSet: Maintains stable IDs & storage for stateful apps.
+
+28️⃣ Q: K8s Deployment vs ReplicaSet?
+A: Deployment manages ReplicaSets — adds rollout/rollback and versioning.
+
+29️⃣ Q: What are K8s Services?
+A: Expose Pods to network. Types: ClusterIP (internal), NodePort, LoadBalancer, ExternalName.
+
+30️⃣ Q: What is Ingress?
+A: Layer-7 entry point for HTTP/HTTPS traffic, supports host/path-based routing.
+
+31️⃣ Q: What are liveness and readiness probes?
+A:
+
+Liveness: Checks if container should restart.
+
+Readiness: Checks if container is ready to receive traffic.
+
+32️⃣ Q: What are Taints & Tolerations?
+A: Mechanism to control pod scheduling on specific nodes.
+
+33️⃣ Q: How to scale a deployment in K8s?
+A:
+
+Manual: kubectl scale deployment <name> --replicas=5
+
+Auto: Horizontal Pod Autoscaler (HPA).
+
+34️⃣ Q: How to troubleshoot a pending pod?
+A: Check: kubectl describe pod → verify node availability, resource requests, taints, network policies.
+
+🔄 Azure DevOps / CI-CD (8 Qs)
+
+35️⃣ Q: How to setup Azure Pipeline connection to Azure resources?
+A: Use Service Connection (Service Principal) in Project Settings → Service Connections.
+
+36️⃣ Q: How to handle multiple languages (Java/C#/Python) in same repo?
+A: Use conditional stages in YAML:
+
+condition: contains(variables['Build.ChangedFiles'], 'src/java')
+
+
+37️⃣ Q: What are variables in Azure Pipelines?
+A: Store configuration values — defined in YAML, UI, or variable groups. Secure vars stored in Azure Key Vault.
+
+38️⃣ Q: What are Deployment Groups?
+A: Collection of target machines (on-prem/VMs) for deployments using agents.
+
+39️⃣ Q: What are Artifacts in Azure DevOps?
+A: Output of a build — can be stored in Azure Artifacts, GitHub Packages, or external feeds.
+
+40️⃣ Q: What are Quality Gates?
+A: Code quality rules (e.g., SonarQube checks, test coverage) enforced before release.
+
+41️⃣ Q: What is the Agent Pool?
+A: A set of build agents that run jobs for pipelines. Can be Microsoft-hosted or self-hosted.
+
+42️⃣ Q: Post-build activities examples?
+A: Publishing test results, code coverage, security scans, artifact uploads, and notifications.
+
+🧠 Scripting / Automation / DevSecOps (8 Qs)
+
+43️⃣ Q: How can applications authenticate to Azure Storage?
+A:
+
+Access Key
+
+Shared Access Signature (SAS)
+
+Azure AD (Managed Identity)
+
+Service Principal
+Recommended: use Managed Identity for least privilege.
+
+44️⃣ Q: How to restrict Enterprise App to certain RG?
+A: Assign RBAC permissions (e.g., Reader/Contributor) scoped only to that resource group.
+
+45️⃣ Q: How to sync Mongo/Postgres between Azure VM & AWS EC2?
+A: Use database replication tools (MongoDB replica sets, pglogical, AWS DMS/Azure Data Factory) or custom scripts with cron.
+
+46️⃣ Q: Error handling in Logic Apps?
+A: Use Scope actions + Run After conditions (hasFailed, hasTimedOut).
+
+47️⃣ Q: Trigger vs Action in Logic Apps?
+A:
+
+Trigger: Event that starts the workflow.
+
+Action: Task performed once triggered.
+
+48️⃣ Q: How to store sensitive info in Terraform?
+A:
+
+sensitive = true
+
+Store in Azure Key Vault, environment variables, or backend variables.
+
+49️⃣ Q: How to enforce Git commit message template?
+A: Use a commit-msg Git hook or enforce via Azure DevOps branch policy.
+
+50️⃣ Q: How to integrate SonarQube in CI/CD?
+A: Add SonarQube Prepare, Analyze, and Publish tasks in build pipeline with service connection to Sonar server.
