@@ -19,8 +19,7 @@ A: Provides outbound internet access for private subnets using a single static p
 A: DNS hosting service that lets you manage DNS zones and records using Azure infrastructure (supports public & private zones).
 
 7️⃣ Q: Types of Azure Storage?
-A:
-Blob (unstructured data, files)
+A:Blob (unstructured data, files)
 File (SMB file shares)
 Queue (messaging)
 Table (NoSQL key-value).
