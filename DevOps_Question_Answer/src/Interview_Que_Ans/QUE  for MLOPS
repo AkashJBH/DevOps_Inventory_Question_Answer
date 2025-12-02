@@ -1,0 +1,132 @@
+1. Data from DevOps_Interview_Questions.xlsx
+
+Interview Questions (4–5 Yrs DevOps)
+Explain how you design a secure VPC with public and private subnets.
+Troubleshoot an EC2 instance with high CPU but low traffic.
+Difference between ALB, NLB, and CLB.
+Difference between IAM roles and policies.
+Setting up CloudWatch alarms for production.
+How RDS automated backups and snapshots work.
+Securing S3 buckets for public and private access.
+Steps to optimize AWS costs.
+How Kubernetes Deployment manages updates.
+Difference between Service and Ingress.
+Pod keeps crashing repeatedly—what happens?
+ConfigMaps vs Secrets.
+Debugging CrashLoopBackOff.
+Purpose of Cluster Autoscaler.
+Troubleshooting Kubernetes networking issues.
+Helm charts and templating.
+Walkthrough of a CI/CD pipeline you built.
+Common Jenkins pipeline issues.
+Handling secrets in GitHub Actions.
+Rolling update vs blue-green deployment.
+Enforcing quality gates in CI/CD.
+CI/CD caching importance.
+GitFlow vs trunk-based development.
+Resolving complex merge conflicts.
+What makes a good PR review?
+Versioning microservices.
+Designing monitoring for microservices.
+Key Kubernetes metrics.
+Logs vs metrics vs traces.
+CloudWatch dashboard setup.
+SLI, SLO, SLA differences.
+Deciding alert rules.
+Infrastructure as Code importance.
+Designing a scalable system.
+Horizontal vs vertical scaling.
+Explain idempotency.
+Security in CI/CD & infra.
+Handling a high-impact incident.
+Steps in a blameless postmortem.
+Symptoms vs root cause.
+Tools for production debugging.
+Communicating blockers in Agile.
+Mentoring junior engineers.
+Cross-team collaboration during release.
+
+2. Data from DevOps_Study_Topics.xlsx
+
+Category	                               Topics / Keywords
+AWS Infrastructure & Cloud Architecture	   EC2, VPC, ALB, S3, IAM, CloudWatch, Lambda, RDS, networking, autoscaling, security best practices
+Kubernetes & Container Orchestration	   EKS, Pods, Deployments, Services, Ingress, Helm, Autoscaling, Prometheus, Grafana, debugging
+CI/CD Pipelines & Automation	           Jenkins, GitHub Actions, Bitbucket Pipelines, YAML workflows, testing, automation, deployment strategies
+Git & Branching Strategies	               GitFlow, trunk-based development, PR reviews, rebasing, semantic versioning
+Monitoring, Logging & Alerting	           CloudWatch, Prometheus, Grafana, SLI/SLO, log aggregation
+DevOps Fundamentals & System Design	       IaC, Terraform, scalability, resiliency, microservices, distributed systems
+Debugging & RCA	                           Triage, root cause analysis, postmortems, incident response
+Collaboration & Agile	                   Agile ceremonies, documentation, communication, mentoring
+
+
+1. Machine Learning & MLOps Pipeline Questions
+
+How do you take a machine learning experiment from a Jupyter notebook to a production-ready pipeline? Explain your end-to-end approach.
+What steps do you follow to version models, datasets, and experiment metadata? Which tools do you use (MLflow, DVC, etc.)?
+How do you deploy GenAI/RAG applications into production while ensuring scalability and cost control?
+Explain how you monitor model drift and data drift in a live ML system. What metrics matter the most?
+How would you implement automated retraining of ML models on Azure?
+
+2. GenAI & LLM Systems
+
+How do you design a Retrieval-Augmented Generation (RAG) pipeline? What challenges do you anticipate?
+How do you track token usage, latency, and error rates for LLM-based applications?
+Explain the difference between embedding models, fine-tuning, and prompt engineering in production systems.
+How do you secure API keys and secrets for LLM providers in Azure?
+How would you optimize cost for a chatbot or GenAI tool used internally by business teams?
+
+3. CI/CD, Automation, and Azure DevOps
+
+Describe a CI/CD pipeline you designed for ML model deployment. How does it differ from standard application CI/CD?
+How do you handle model registry, artifact versioning, and environment promotion (dev → stage → prod)?
+Explain YAML pipelines in Azure DevOps and how you modularize templates for reuse.
+How would you automate rollback if an ML model produces degraded results in production?
+How do you integrate unit tests, integration tests, and data validation tests into CI/CD?
+
+4. Cloud Infrastructure (Azure) & Terraform
+
+How do you design a scalable ML/GenAI platform on Azure? Walk through your architecture.
+What is your approach for Infrastructure-as-Code using Terraform? How do you structure modules?
+Explain the difference between Azure Kubernetes Service, Azure App Service, and Container Instances for ML workloads.
+How do you secure VNets, subnets, NSGs, and service endpoints for ML pipelines?
+If a Terraform deployment fails in the middle, how do you recover and reconcile state?
+
+5. Docker & Orchestration
+
+How do you containerize Python ML applications? What best practices do you follow in Dockerfiles?
+How do you reduce image size and avoid dependency conflicts in ML containers?
+Explain how you orchestrate container-based ML workloads (AKS, KEDA, batch jobs, etc.).
+How do you handle GPU support inside containers for training or inference?
+What is your approach to logging, health checks, and auto-healing for containerized ML services?
+
+6. Data Engineering, Azure, Snowflake
+
+How do you design pipelines that write model outputs to Snowflake or Azure SQL?
+What are Snowflake warehouses, micro-partitions, and time-travel? How do they impact ML workflows?
+How do you manage schema evolution between ML pipelines and BI workloads?
+Explain how you optimize data ingestion + querying to support high-performance ML applications.
+How would you automate quality checks (nulls, anomalies, drift) in data pipelines?
+
+7. Observability, Monitoring & Reliability
+
+How do you design monitoring for an ML system—cover logs, metrics, traces, model metrics, alerts?
+What tools do you prefer for observability? (Prometheus, Grafana, Azure Monitor, Log Analytics, etc.)
+How do you detect anomalies in token usage, high latency, or LLM hallucinations?
+Explain how you design SLOs/SLIs/SLA for ML/GenAI applications.
+Describe a production issue you diagnosed using observability tools. What was your debugging process?
+
+8. Python, Scripting, and Automation
+
+How do you structure Python code for ML pipelines (packages, modules, config, logging)?
+Explain how you automate recurring ML workflows using Python + Bash.
+How do you test Python ML code (pytest, mocking, CI tests, data tests)?
+How do you design reusable Python components for data preprocessing, model wrapping, and inference?
+How do you handle dependency management (venv, conda, poetry, requirements.txt)?
+
+9. Cross-Functional Collaboration & Architecture
+
+How do you work with data scientists to convert research notebooks into production-ready code?
+When reviewing code from data scientists, what are the top 5 things you look for?
+How do you translate business requirements into technical ML/GenAI solutions?
+Describe a situation where you challenged a design decision and improved the system.
+How do you balance speed of delivery vs reliability in ML deployments?
