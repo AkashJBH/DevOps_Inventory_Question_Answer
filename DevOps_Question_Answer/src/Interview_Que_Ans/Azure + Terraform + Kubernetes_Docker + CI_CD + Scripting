@@ -182,3 +182,410 @@ A: Use a commit-msg Git hook or enforce via Azure DevOps branch policy.
 
 50️⃣ Q: How to integrate SonarQube in CI/CD?
 A: Add SonarQube Prepare, Analyze, and Publish tasks in build pipeline with service connection to Sonar server.
+
+✅ 1. Types of Deployment Strategies (CI/CD Deployment Strategies)
+Explain each with use cases + pros/cons (must-know for 5 yrs experience).
+1. Rolling Deployment
+How it works:
+Gradually replace old versions with new versions instance-by-instance.
+No downtime.
+Use case:
+Microservices on Kubernetes, EC2 Auto Scaling Groups.
+Advantages:
+Zero downtime
+Easy rollback (if using multiple replicas)
+Disadvantages:
+Hard to test full new version until rollout completes
+
+2. Blue-Green Deployment
+How it works:
+Two identical environments: Blue (old) and Green (new)
+Traffic is switched from Blue → Green after testing.
+Use case:
+Critical applications where downtime must be zero
+Load balancer (ALB/NLB) or Route53 weighted routing
+Advantages:
+Instant rollback
+True zero downtime
+Disadvantages:
+Double infrastructure cost
+
+3. Canary Deployment
+How it works:
+Release new version to a small group of users (5–10%)
+Monitor performance
+Gradually increase traffic
+Use case:
+High-risk changes
+Kubernetes + Istio or Argo Rollouts
+Advantages:
+Very safe, issues found early
+Dynamic traffic control
+Disadvantages:
+More complex monitoring & routing setup
+
+4. A/B Testing Deployment
+How it works:
+Route different versions to different audiences based on rules
+Used to compare features or UI changes
+Use case:
+Feature validation
+Marketing experiments
+
+5. Recreate Deployment
+How it works:
+Stop old version → Deploy new version
+Causes temporary downtime
+Use case:
+Non-critical apps
+Apps not supporting multiple versions at same time
+
+6. Shadow Deployment
+How it works:
+Duplicate traffic is sent silently to new version
+Old version handles real requests
+Use case:
+ML model replacements
+Risk-free comparison of outputs
+
+✅ 2. Workflow of Deployment (CI/CD Pipeline Workflow)
+Here is a standard end-to-end deployment workflow expected from a DevOps engineer:
+
+Step 1 — Code Commit (Developer Stage)
+Developers push code into Git (GitHub/GitLab/Bitbucket)
+A Pull Request is created
+Static checks run (linting, style check)
+
+Step 2 — CI Pipeline (Build + Test Stage)
+Triggered automatically on commit or PR.
+CI pipeline includes:
+Fetch code
+Install dependencies
+Run unit tests
+Run code quality tools (SonarQube, pylint, flake8)
+Build artifact:
+Docker image (push to ECR/ACR/GCR)
+JAR/WAR (store in Artifactory/Nexus)
+Output:
+A tested, verified artifact.
+
+Step 3 — Security & Compliance Stage
+SAST (Static Application Security Testing)
+Dependency scans (Snyk/Trivy)
+Container vulnerability scan
+
+Step 4 — CD Pipeline (Deployment Stage)
+Deployment depends on environment:
+a) Deploy to Dev
+Automated deployment
+Run integration tests
+Smoke tests
+b) Deploy to QA
+Manual approval
+Run functional & regression tests
+c) Deploy to Staging
+Performance tests, load test
+UAT approval
+d) Deploy to Production
+Based on strategy:
+Blue-Green
+Canary
+Rolling
+Infra provisioning (Terraform/CloudFormation)
+
+Step 5 — Monitoring & Feedback
+Tools:
+CloudWatch
+Prometheus + Grafana
+ELK/ELK
+Jaeger tracing
+Based on metrics / logs:
+Auto rollback (if health checks fail)
+Version pinned
+Alerts sent via Slack, Teams
+
+✅ 3. Branching Methods (Git Branching Strategy)
+Interviewers expect clarity on when and why you use each.
+1. GitFlow (Most common for enterprises)
+Branches:
+master/main → Production-ready code
+develop → Latest stable development
+feature/ → One branch per feature
+release/ → Pre-production testing
+hotfix/ → Critical fixes on production
+Why used?
+Works well for large teams
+Clearly separated environments
+
+2. GitHub Flow (Modern, lightweight)
+Branches:
+main
+feature branches
+Process:
+Create feature branch
+Commit + Push
+Pull Request
+CI runs
+Merge to main
+Auto deploy
+Use case:
+SaaS, fast release cycles
+
+3. Trunk-Based Development
+Branches:
+main (trunk)
+Short-lived feature branches merged frequently
+Used in:
+High velocity teams
+CI/CD automation
+Kubernetes microservices
+Advantages:
+Reduces merge conflicts
+Faster deployments
+
+4. Release Branching
+Each release has a dedicated branch (ex: release-v1.2)
+Bug fixes pushed only to that release
+Use case:
+Large stable product
+LTS (Long Term Support) releases
+
+
+✅ 1) CI/CD pipeline I designed for ML model deployment (end-to-end)
+High level flow
+Source control (Git repo): code, pipeline YAML, infra-as-code, experiment notebooks (not final).
+CI — build & test
+Linting & static checks (flake8, bandit).
+Unit tests for data transforms and model code (pytest).
+Data schema checks (Great Expectations / Evidently) run against a small sample.
+Build training container (Docker), push to registry (ACR / ECR).
+Train (reproducible) — triggered by CI or scheduled:
+Pull versioned dataset via DVC or dataset registry.
+Launch training job (Kubeflow Pipelines / Azure ML / SageMaker / Kubernetes jobs).
+Record experiment metadata (params, metrics, artifacts) to ML Registry (MLflow / Azure ML).
+Model evaluation & validation
+Run evaluation suite: offline metrics, fairness checks, explainability smoke tests, performance profiling.
+Run data validation tests to ensure no covariate shift on validation dataset.
+Register model if metrics pass: push model artifact with metadata (dataset hash, code commit, hyperparams) to the model registry.
+Artifact promotion & staging deploy
+Build inference image (BentoML / custom Flask + gunicorn) that pulls model by registry id.
+Deploy to dev (k8s namespace) automatically; run integration and E2E tests.
+Promote to stage with manual or automated gating (canary traffic split + shadow testing).
+Production deploy
+Canary rollout (Argo Rollouts / Istio / Kubernetes + Helm).
+Continuous monitoring (Prometheus + Grafana + custom metrics) and ML monitoring (Evidently / WhyLabs).
+Observability & automated rollback
+Monitor fidelity metrics (accuracy, latency, input data drift). If degradation threshold breached, rollback automatically.
+Lineage & audit
+All runs log to the tracking server; artifacts stored in S3/Blob; dataset versions and hashes stored (DVC or Delta/Lakehouse).
+Concrete tools I used (example stack)
+Source & CI: Git + Azure DevOps YAML pipelines
+Training & orchestration: Azure ML Pipelines & Kubernetes (or Kubeflow)
+Registry: MLflow / Azure ML model registry
+Data versioning: DVC or Delta Lake
+Serving: Kubernetes + BentoML / KServe / Seldon Core
+Monitoring: Prometheus/Grafana + Evidently / WhyLabs
+Rollouts: Argo Rollouts / Istio / Feature flagging (LaunchDarkly) for traffic control
+
+✅ 2) How this differs from standard application CI/CD
+ML pipelines have several unique constraints and therefore additional stages:
+Data as a first-class citizen
+Models depend on datasets — CI/CD must version data, validate schema and distribution, and test using real-ish data.
+Non-deterministic outputs
+Model training can be non-deterministic; need strict provenance (random seeds, environment, container image, dataset commit).
+Artifact complexity
+Artifacts = trained model + dataset snapshot + feature transformation code + metadata. Application CI typically just builds binaries or containers.
+Long running jobs
+Training can take hours; pipeline must support asynchronous long-running steps and job orchestration.
+Model evaluation gating
+Promotion based on metrics and statistical tests, not only unit/integration tests.
+Production monitoring & feedback loop
+ML needs model performance & data drift monitoring and an automated retraining loop.
+Rollback complexity
+Rollback may require reverting model and infrastructure (feature changes). Canarying and shadow testing are common.
+Experimentation & registry
+Model registries and experiment tracking are core; apps usually don’t need an experiment store.
+When explaining this in an interview emphasize reproducibility, lineage, and gates based on statistical validation.
+
+✅ 3) Model registry, artifact versioning, environment promotion (dev → stage → prod)
+Model registry (how & what to store)
+What to store: model binary (serialized), model metadata (metrics, hyperparams), training dataset hash, feature engineering code version, training code commit hash, environment spec (Conda/Docker), provenance ID.
+Tools: MLflow, Azure ML Model Registry, or a custom artifact store with metadata DB.
+Process:
+After successful evaluation, call mlflow.register_model(...) or az ml model register with tags: dataset_hash, git_sha, pipeline_run_id, metrics.*.
+Store model in object storage (S3/Blob) and only reference it in the registry.
+Artifact versioning
+Semantic + immutable identifiers
+Use a combination: model_v{major}.{minor}.{patch} + model registry internal ID (UUID) + git commit hash.
+Also include dataset_hash and feature_pipeline_hash.
+Dataset & features
+Use DVC/Delta to version datasets; store dataset commit hash alongside model.
+Container images
+Tag Docker images with git_sha and registry_model_id.
+Policies
+Immutable artifacts. Never overwrite a model version. Create a new version for each retrain.
+Environment promotion (dev → stage → prod)
+Stages as separate environments (namespaces/clusters) with identical infra as code.
+Promotion strategy
+Dev: automatic deployment after CI (smoke tests & integration tests pass).
+Stage: post-approval or based on auto-gates (extensive integration tests, performance tests, larger validation datasets). Use automated tests and business metric simulation (shadow).
+Prod: canary rollout with incremental traffic. Final promotion to 100% if canary metrics pass.
+Controls
+Use pipeline gates: automated checks + manual approvals (for compliance cases).
+Keep configuration parameterized (secrets, model id) in pipeline variables / Azure Key Vault.
+Traceability
+When promoting, store mapping env -> model_version in a release manifest (S3 / DB) for audits.
+
+✅ 4) Explain YAML pipelines in Azure DevOps and how you modularize templates for reuse
+Azure DevOps YAML pipeline basics (quick summary)
+YAML pipelines are stored in repo (azure-pipelines.yml).
+Key building blocks: trigger, variables, stages, jobs, steps.
+Templates allow reuse: create reusable YAML snippets and include them using - template: path/to/template.yml.
+How I modularize templates (recommended structure)
+Project repo layout:
+
+/pipelines/
+  azure-pipelines.yml                # main pipeline
+  templates/
+    build.yml
+    test.yml
+    train.yml
+    register-model.yml
+    deploy-model.yml
+    canary-rollout.yml
+    approve.yml
+
+Example: deploy-model-template.yml
+# pipelines/templates/deploy-model-template.yml
+parameters:
+  - name: environment
+    type: string
+  - name: modelVersion
+    type: string
+
+stages:
+  - stage: Deploy_${{ parameters.environment }}
+    displayName: Deploy to ${{ parameters.environment }}
+    jobs:
+      - job: Deploy
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: DownloadSecureFile@1
+            name: download_kubeconfig
+            inputs:
+              secureFile: 'kubeconfig-${{ parameters.environment }}'
+          - script: |
+              echo "Deploying model ${{ parameters.modelVersion }} to ${{ parameters.environment }}"
+              # Helm or kubectl commands that use modelVersion
+            displayName: 'Deploy model to k8s'
+
+Example: main pipeline azure-pipelines.yml using templates
+trigger:
+  branches:
+    include: [ main, develop ]
+
+stages:
+- stage: Build
+  jobs:
+  - template: templates/build.yml
+
+- stage: Test
+  dependsOn: Build
+  jobs:
+  - template: templates/test.yml
+
+- stage: Train
+  dependsOn: Test
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - template: templates/train.yml
+
+- stage: Register
+  dependsOn: Train
+  jobs:
+  - template: templates/register-model.yml
+
+- template: templates/deploy-model-template.yml
+  parameters:
+    environment: 'dev'
+    modelVersion: '$(registeredModelVersion)'
+
+- template: templates/deploy-model-template.yml
+  parameters:
+    environment: 'stage'
+    modelVersion: '$(registeredModelVersion)'
+
+Reusability tips
+Parameterize templates (env, resource names, model id, image tag).
+Keep templates small — single responsibility (build, test, deploy).
+Use variable groups and KeyVault for storing secrets.
+Use job-level templates for repeating job definitions (lint + unit-tests, build image, push image).
+
+✅ 5) How to automate rollback if a model produces degraded results in production
+Principles
+Detect failure early (robust monitoring).
+Keep rollback safe and automated but auditable.
+Prefer canary deployments with automatic analysis; rollback is then much faster.
+Monitoring & triggers
+Metrics to watch
+Business metrics (conversion, revenue impact), model metrics (accuracy, precision/recall), latency, error rates.
+Data quality metrics: input feature distributions, schema changes, missingness.
+Thresholds
+Predefine thresholds and statistical tests (e.g., accuracy drop > X% or data drift p-value < 0.01).
+Signal aggregation
+Use tools like Prometheus + Alertmanager and ML-specific monitors (Evidently / WhyLabs) to emit alerts.
+Rollback automation flow
+Canary rollout (e.g., 5% traffic) for new model.
+Automated canary analysis (Argo Rollouts or custom script):
+Collect metrics across baseline vs candidate for window T.
+Run statistical tests and threshold checks.
+Decision
+If checks pass → continue rollout to 25 → 50 → 100.
+If checks fail → automatically rollback to previous model version (Argo Rollouts supports automatic rollback).
+Rollback implementation
+Use rollout controller (Argo/Kubernetes) or update service to reference previous model image / registry id.
+In Azure, use Deployment Slots (App Service) or Kubernetes deployments + Helm with helm rollback.
+Post-rollback
+Notify stakeholders, create an incident ticket, capture logs and model inputs for root cause analysis.
+Optionally trigger a retrain pipeline automatically if the failure reason is data drift.
+Example orchestration options
+Argo Rollouts: built-in automated analysis and rollback policies.
+Feature flags: quickly route traffic to old model via LaunchDarkly or internal flag.
+K8s + Helm: implement scripts to helm rollback if external monitor triggers an API call.
+Safety nets
+Minimum time windows to avoid noisy flips.
+Hysteresis: require repeated violations before rollback.
+Custom fallback model that’s known stable (e.g., last production model).
+
+✅ 6) Integrating unit tests, integration tests, and data validation tests into CI/CD
+Test pyramid for ML
+Unit tests (fast, many)
+Test feature engineering functions, data transforms, model code functions, edge cases.
+Use small synthetic data.
+Run on every push/PR in CI.
+Integration tests (medium)
+Test end-to-end data flow: preprocessing → model inference (on small sample), database reads/writes, model API endpoints.
+Use docker-compose or test k8s namespace with test infra.
+Run on PR merges to develop or nightly.
+E2E / system tests (slow, few)
+Full pipeline runs against larger but sampled datasets; simulate production calls. Run on main merges or nightly.
+Data validation tests
+Use Great Expectations / Evidently to define expectations: schema, distributions, uniqueness, nullity.
+Run these as unit-level checks in CI on a sample, and as integration checks in staging against full datasets.
+Model performance tests
+Offline evaluation tests: ensure metrics meet gated thresholds (e.g., ROC-AUC >= x).
+Fairness & explainability checks—if any test fails, prevent promotion.
+Contract tests
+For model-serving API: contract tests to ensure response schema and latency bounds remain OK.
+Where to run tests in pipeline
+PR stage: unit tests + lint + small data validation checks. Fail fast.
+CI build: run integration tests, container build, unit tests.
+Training stage: after training completes, run evaluation and data validation tests. If any fail, do not register model.
+Pre-production stage: after deployment to stage, run E2E tests + shadow testing with production traffic.
+Post-deploy: run synthetic monitoring tests continuously.
+Automation patterns
+Use test artifacts and caching to speed up tests.
+Use reusable test templates in Azure DevOps: templates/test.yml that accepts testType param.
+Use parametrized datasets (small sample vs full) to control test duration.
+Fail pipeline early with informative logs and attach artifact for debugging.
