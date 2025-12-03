@@ -1,0 +1,170 @@
+⭐ 1. How do you work with data scientists to convert research notebooks into production-ready code?
+Answer (5 yrs experienced level):
+
+Converting notebooks to production code requires a structured, collaborative workflow:
+✔ Step 1 — Requirements & Understanding
+I start with a session with the data scientist to understand:
+Model purpose, assumptions, feature logic
+Data dependencies (tables, files, APIs)
+Hyperparameters, preprocessing steps
+I capture all these in a design document or ML pipeline spec.
+
+✔ Step 2 — Refactor Notebook into Modular Code
+Break the notebook into reusable Python modules:
+data_ingestion.py
+feature_engineering.py
+train.py
+predict.py
+evaluation.py
+Convert inline/duplicate code cells into functions/classes.
+Remove stateful notebook-specific artifacts.
+
+✔ Step 3 — Add Standards
+Pydantic for input validation
+Logging (structured JSON logs)
+Exception handling
+Type hints + docstrings
+Config separation (YAML/JSON + Hydra)
+
+✔ Step 4 — Build Pipeline (Airflow / ADF / Prefect / MLflow)
+Orchestrate:
+data fetch
+transform
+training
+validation
+deployment
+
+✔ Step 5 — Testing
+Add:
+unit tests (pytest)
+integration tests (train → predict flow)
+data quality checks (Great Expectations)
+
+✔ Step 6 — Containerization & CI/CD
+Dockerize model code
+Add CI/CD for:
+linting
+tests
+model registry push
+automatic deployment
+
+✔ Step 7 — Monitoring
+Set up model performance monitoring:
+input drift
+prediction drift
+latency
+infra metrics
+
+⭐ 2. When reviewing code from data scientists, what are the top 5 things you look for?
+Answer:
+
+1. Modularity & Maintainability
+Code broken into functions/classes—not long notebook cells.
+Separation of concerns (ingestion, preprocessing, training, inference).
+
+2. Performance & Scalability
+Vectorized operations (pandas → Spark/Polars if needed)
+Memory usage
+No local file paths or hard-coded values
+
+3. Reproducibility
+Random seeds
+Environment captured (requirements.txt, conda.yaml)
+Deterministic data transforms
+
+4. Error Handling & Logging
+Try/except blocks for critical parts
+Structured logs instead of print()
+
+5. Configurability
+Parameters passed via config files
+No hard-coded credentials/API keys
+Environment variables used properly
+
+⭐ 3. How do you translate business requirements into technical ML/GenAI solutions?
+Answer:
+
+Step 1 — Understand the Business Problem
+I ask:
+What business metric are we trying to improve?
+What decisions will the model influence?
+Expected ROI?
+
+Step 2 — Convert to ML Problem Type
+Examples:
+“Reduce manual customer support work” → GenAI summarization/chatbot
+“Predict demand for products” → forecasting model
+
+Step 3 — Identify Data Requirements
+Source systems (Snowflake, Azure SQL, APIs)
+Required features
+Data quality & availability
+
+Step 4 — Architecture Mapping
+I define:
+data preprocessing pipeline
+model training approach
+deployment method (batch vs real-time)
+infra (AKS / ACI / serverless / MLflow)
+
+Step 5 — Constraints
+Latency requirements
+Security/compliance (PII, PHI)
+Cost limits
+
+Step 6 — Produce High-Level Design
+Includes:
+Data flow diagram
+Model lifecycle diagram
+Error paths
+Monitoring strategy
+
+Step 7 — Validate with Stakeholders
+Align with Product Owner, DS, and Infra team
+Convert into user stories + tasks
+
+⭐ 4. Describe a situation where you challenged a design decision and improved the system.
+Answer example:
+
+"In one project, data scientists wanted to deploy a heavy XGBoost model inside a Flask API on a VM. The latency target was < 50 ms, but the model took 300+ ms just to load. I challenged the design because it wouldn't scale or meet SLA.
+I proposed moving to an ONNX optimized version of the model and running it on AKS with autoscaling and Azu­re ML Managed Endpoints. I also implemented caching for common requests.
+Outcome:
+Inference latency dropped from 300 ms → 20 ms
+Cost reduced by 40% due to auto-scaling
+Reliability improved because probes + auto-healing handled failures
+This example shows I challenge decisions based on technical constraints and propose a scalable alternative."
+
+⭐ 5. How do you balance speed of delivery vs reliability in ML deployments?
+Answer:
+
+This is a common tradeoff in MLOps — I follow a framework:
+✔ 1. Development Speed for New Experiments
+Allow flexible notebook experimentation
+Enable ephemeral environments
+Provide shared feature store + datasets
+
+✔ 2. Reliability for Production
+To avoid slowing down delivery, I enforce automation:
+Minimal reliability standards:
+CI pipeline with linting + unit tests
+MLflow model registry for approval
+Canary or shadow deployments
+Automated validation (data drift, schema checks)
+
+✔ 3. Controlled Release Strategy
+Use A/B testing, blue/green, or shadow mode to reduce risk.
+Feature flags to switch models instantly.
+
+✔ 4. Clear Escape Plan
+Automated rollback if:
+model accuracy drops
+latency > threshold
+drift detected
+
+✔ 5. Communication with Stakeholders
+Agree on:
+acceptable risk
+deployment schedule
+fallback scenarios
+In short:
+Move fast in development, deploy safely using automation and guardrails.

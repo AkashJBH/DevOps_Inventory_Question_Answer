@@ -77,13 +77,6 @@ How would you optimize cost for a chatbot or GenAI tool used internally by busin
 
 
 
-6. Data Engineering, Azure, Snowflake
-
-How do you design pipelines that write model outputs to Snowflake or Azure SQL?
-What are Snowflake warehouses, micro-partitions, and time-travel? How do they impact ML workflows?
-How do you manage schema evolution between ML pipelines and BI workloads?
-Explain how you optimize data ingestion + querying to support high-performance ML applications.
-How would you automate quality checks (nulls, anomalies, drift) in data pipelines?
 
 7. Observability, Monitoring & Reliability
 
@@ -100,14 +93,6 @@ Explain how you automate recurring ML workflows using Python + Bash.
 How do you test Python ML code (pytest, mocking, CI tests, data tests)?
 How do you design reusable Python components for data preprocessing, model wrapping, and inference?
 How do you handle dependency management (venv, conda, poetry, requirements.txt)?
-
-9. Cross-Functional Collaboration & Architecture
-
-How do you work with data scientists to convert research notebooks into production-ready code?
-When reviewing code from data scientists, what are the top 5 things you look for?
-How do you translate business requirements into technical ML/GenAI solutions?
-Describe a situation where you challenged a design decision and improved the system.
-How do you balance speed of delivery vs reliability in ML deployments?
 
 Docker
 1. Docker Image related Command

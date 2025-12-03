@@ -400,49 +400,34 @@ Interview Summary
 
 ✅ 5. S3 Security Best Practices
 1. Enable Block Public Access
-
 Prevents accidental public exposure.
 
 2. Use SSE-KMS Encryption
-
 Better auditing
-
 Key rotation
-
 Fine-grained access control
 
 3. Use Bucket Policies Instead of ACLs
-
 ACLs are legacy — avoid unless needed.
 
 4. Enforce TLS Using Bucket Policy
-
 Deny insecure uploads:
-
 "aws:SecureTransport": "false"
 
 5. Use S3 VPC Endpoints
-
 Access S3 privately without internet.
 
 6. Enable Access Logs / CloudTrail
-
 Track:
-
 Who accessed
-
 What operations were performed
 
 7. Follow Principle of Least Privilege
-
 Restrict to exact actions required.
 
 8. Use Versioning + MFA Delete
-
 Prevents accidental or malicious deletes.
-
 Interview Summary
-
 “Keep buckets private, use KMS encryption, avoid ACLs, enable logging, enforce TLS, use VPC endpoints, and follow least privilege.”
 
 ✅ 6. S3 Storage Class Use Cases
