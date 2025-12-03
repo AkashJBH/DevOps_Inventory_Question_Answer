@@ -1,0 +1,305 @@
+1) Purpose of __init__ method in Python
+__init__ is the instance initializer (often called the constructor). Python creates the new object (__new__), then __init__ is called to initialize the instance attributes.
+Key points
+Runs once per instance after memory allocation.
+Used to set instance state and validate arguments.
+Not used to create the instance (that’s __new__) — it only initializes.
+Example:
+class ModelConfig:
+    def __init__(self, lr: float = 1e-3, batch_size: int = 32):
+        if lr <= 0:
+            raise ValueError("lr must be positive")
+        self.lr = lr
+        self.batch_size = batch_size
+
+2) Multithreading in Python and how you implemented it in your project
+Short theory
+Python has a GIL (Global Interpreter Lock) which prevents multiple native Python bytecode threads executing concurrently in one process.
+Use multithreading for I/O-bound work (network requests, disk I/O). Use multiprocessing (or native extensions, or libraries that release the GIL like NumPy) for CPU-bound tasks.
+concurrent.futures.ThreadPoolExecutor is the ergonomic modern API. For CPU-bound, use ProcessPoolExecutor or multiprocessing.
+Typical project use-cases
+Parallel downloading of dataset shards (I/O-bound) — ThreadPoolExecutor.
+Parallel feature extraction when code is in C (NumPy ops) — ThreadPoolExecutor can help because NumPy often releases the GIL.
+Parallel model evaluation across parameter configurations — ProcessPoolExecutor.
+Example (ThreadPoolExecutor for parallel downloads):
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests
+def download(url):
+    resp = requests.get(url, timeout=10)
+    resp.raise_for_status()
+    return url, resp.content
+
+urls = ["https://.../shard1", "https://.../shard2"]
+results = {}
+with ThreadPoolExecutor(max_workers=8) as ex:
+    futures = {ex.submit(download, u): u for u in urls}
+    for fut in as_completed(futures):
+        u, data = fut.result()
+        results[u] = data
+
+Production considerations
+Rate limit your concurrency (avoid overwhelming services).
+Use timeouts and retries (with backoff).
+Use thread-safe data structures or synchronize access (locks/queues) if sharing state.
+Monitor thread counts, memory, and latencies.
+
+3) How to acquire the Google Cache Age of any URL using Python
+There is no official simple API that returns “cache age” directly. Two pragmatic approaches:
+A — Parse Google’s cached snapshot page:
+Request https://webcache.googleusercontent.com/search?q=cache:<URL>.
+Parse the snapshot page header that includes “This is a snapshot of the page as it appeared on <date/time>.”
+Compare that time to now → gives age.
+Example (rudimentary):
+
+import requests
+from bs4 import BeautifulSoup
+from dateutil import parser, tz
+from datetime import datetime
+
+def google_cache_age(url):
+    cache_url = "https://webcache.googleusercontent.com/search?q=cache:" + url
+    r = requests.get(cache_url, timeout=10)
+    if r.status_code != 200:
+        return None
+    soup = BeautifulSoup(r.text, "html.parser")
+    # This depends on page structure — look for the text that says "This is a snapshot..."
+    text = soup.get_text()
+    # crude parse: find "This is a snapshot of the page as it appeared on"
+    marker = "This is a snapshot of the page as it appeared on "
+    i = text.find(marker)
+    if i == -1:
+        return None
+    snippet = text[i + len(marker): i + len(marker) + 100]
+    # snippet should contain a date — parse it
+    try:
+        cached_dt = parser.parse(snippet, fuzzy=True)
+        return datetime.now(tz=tz.tzutc()) - cached_dt
+    except Exception:
+        return None
+
+
+Notes:
+Google may block programmatic scraping or return different HTML; always handle 403/429.
+For reliability in production, use (a) cached-SNAPSHOT parsing as above with robust parsing & retries, or (b) rely on CDN headers from the host (e.g., Age header from reverse proxies) if investigating your own resources.
+If you need accurate programmatic results at scale, consider using a third-party web-archive API (Wayback Machine) or building a custom caching layer that records timestamps.
+
+4) Negative indexes and its uses
+Negative indices index from the end: a[-1] is last element, a[-2] second last.
+Very useful in slicing and quick access to tail elements without computing length.
+Examples:
+a = [1,2,3,4,5]
+last = a[-1]         # 5
+last_two = a[-2:]    # [4,5]
+all_but_last = a[:-1]# [1,2,3,4]
+
+Uses in ML:
+Access recent records in a rolling window.
+Quickly look at last N predictions/metrics.
+Convenience in sequence models for selecting last token.
+
+5) Exception handling
+Essentials
+try:
+    do_something()
+except SpecificError as e:
+    handle_it(e)
+except (TypeError, ValueError) as e:
+    handle_other(e)
+else:
+    # executes if no exception
+    success_cleanup()
+finally:
+    # executes always (close files, release resources)
+    final_cleanup()
+
+Best practices
+Catch specific exceptions, not except Exception: unless you wrap and re-raise.
+Use finally for resource cleanup or with context managers (preferred).
+Add meaningful context when re-raising:
+try:
+    results = parse_blob(blob)
+except ValueError as e:
+    raise ValueError("parse failed for blob id=123") from e
+
+For long-running ML jobs, handle interrupt signals (SIGTERM) gracefully and persist checkpoints.
+Validate inputs early (fail fast) to avoid deep exception stacks.
+
+6) What is a module in Python?
+A module is a single .py file that can contain functions, classes, and runnable code.
+A package is a directory with an __init__.py (or namespace package) that groups modules.
+Modules are imported via import mymodule or from pkg.module import Class.
+Example:
+my_package/
+  __init__.py
+  data_loader.py   # module
+  models.py        # module
+
+7) What is Monkey Patching in Python?
+Monkey patching = modifying or extending code at runtime (replacing methods, attributes) without editing source.
+Example:
+import requests
+def fake_get(*args, **kwargs):
+    raise RuntimeError("requests disabled in test")
+original = requests.get
+requests.get = fake_get
+# ... do stuff
+requests.get = original  # restore
+When to use:
+Testing (patching external dependencies).
+Quick runtime hotfixes (dangerous).
+Risks:
+Hard to reason about; can break behavior unexpectedly. Use judiciously — prefer unittest.mock.patch for tests.
+
+8) How you structure Python code for ML pipelines (packages, modules, config, logging)
+Typical repo layout (clean, modular, testable):
+project/
+  README.md
+  pyproject.toml    # or requirements.txt + setup
+  src/
+    project/
+      __init__.py
+      configs/            # config loading helpers
+        default.py
+      data/
+        loader.py
+        transforms.py
+      features/
+        feature_store.py
+      models/
+        base.py           # BaseModel class, model wrappers
+        train.py
+        inference.py
+      pipelines/
+        train_pipeline.py
+        eval_pipeline.py
+      utils/
+        io.py
+        logging.py
+  tests/
+  notebooks/
+  scripts/               # CLI scripts / entrypoints
+  infra/                 # deployment, Dockerfile, k8s manifests, Terraform
+
+Config management
+Use typed config objects (dataclasses, pydantic) and separate environment-specific overrides.
+Example tools: Hydra, omegaconf, pydantic, or simple YAML+dataclass mapping.
+Keep secrets out of repo — use env vars or secret stores (Vault, AWS Secrets Manager).
+Logging
+Centralized logger configuration (structlog or stdlib logging configured once).
+JSON logs for structured logging in production.
+Log important metadata: dataset version, model version, hyperparameters, seed, commit hash.
+Example logger setup:
+# src/project/utils/logging.py
+import logging, sys
+def configure_logging(level=logging.INFO):
+    root = logging.getLogger()
+    handler = logging.StreamHandler(sys.stdout)
+    fmt = "%(asctime)s %(levelname)s %(name)s %(message)s"
+    handler.setFormatter(logging.Formatter(fmt))
+    root.setLevel(level)
+    root.addHandler(handler)
+
+9) How you automate recurring ML workflows using Python + Bash
+Options (increasing sophistication)
+cron + Bash wrapper + virtualenv/Docker (simple periodic jobs).
+Containerized jobs scheduled in Kubernetes (CronJob).
+Orchestration platforms: Airflow, Prefect, Dagster—preferred for complex DAGs, dependencies, retries, monitoring.
+Simple cron + bash pattern:
+/etc/cron.d/daily_train
+# run at 02:00 every day
+0 2 * * * /opt/project/scripts/run_daily_train.sh >> /var/log/train.log 2>&1
+run_daily_train.sh:
+#!/usr/bin/env bash
+set -euo pipefail
+cd /opt/project
+. venv/bin/activate
+python -m project.pipelines.train_pipeline --config conf/daily.yaml
+More production-grade:
+Use Airflow/Prefect to express DAGs, retries, backfills, sensor tasks (e.g., wait for new data).
+Keep container images immutable; schedule job by launching a container and passing config via secrets or object store.
+Integrate with monitoring and alerting (Slack/email on failures).
+
+10) How you test Python ML code (pytest, mocking, CI tests, data tests)
+Testing pyramid:
+Unit tests: fast, isolated — pytest, small functions, unittest.mock.
+Integration tests: reading from small sample datasets, run a training step on fewer steps.
+End-to-end tests: run a full pipeline in a controlled environment (possibly nightly).
+Data tests: Great Expectations / custom checks for schema, nulls, unique keys, distributions, drift.
+Examples:
+Use pytest + fixtures for reproducible inputs.
+Use pytest-mock or unittest.mock.patch for external dependencies (S3, DB).
+Snapshot tests for serialized outputs when appropriate.
+Example pytest unit test:
+# tests/test_loader.py
+from project.data.loader import load_csv
+def test_load_csv(tmp_path):
+    p = tmp_path / "data.csv"
+    p.write_text("a,b\n1,2\n")
+    df = load_csv(str(p))
+    assert df.shape == (1,2)
+CI
+Run tests in CI (GitHub Actions / Azure Pipelines / GitLab).
+Run unit tests on PRs; run integration/long tests in nightly pipelines or tagged releases.
+Include linting, type checks (mypy), and contract tests.
+Data tests & model quality tests
+Integrate automatic checks that fail or mark run if data drift, missing features, or accuracy drop vs baseline.
+Optionally gate production deployments based on these checks.
+
+11) How you design reusable Python components for data preprocessing, model wrapping, and inference
+Principles
+Use small, composable functions and clear interfaces.
+Create base classes / interfaces for plug-in components.
+Keep side-effects (I/O) separated from pure transformation logic (easier to test).
+Build pipelines that are serializable (sklearn Pipeline, or custom with fit/transform/save).
+Example structure
+# base preprocessor interface
+class Preprocessor:
+    def fit(self, X, y=None): ...
+    def transform(self, X): ...
+    def save(self, path): ...
+    @classmethod
+    def load(cls, path): ...
+# model wrapper
+class ModelWrapper:
+    def __init__(self, model, preprocess: Preprocessor):
+        self.model = model
+        self.preprocess = preprocess
+    def train(self, X, y):
+        self.preprocess.fit(X, y)
+        Xp = self.preprocess.transform(X)
+        self.model.fit(Xp, y)
+    def predict(self, X):
+        return self.model.predict(self.preprocess.transform(X))
+    def save(self, path):
+        # save both preprocess and model
+        self.preprocess.save(path + "/preproc")
+        joblib.dump(self.model, path + "/model.joblib")
+
+Reuse ideas
+Implement a small registry for components so experiments can swap components via config (e.g., "preprocessor": "StandardScaleV2").
+Wrap third-party models in a consistent predict_proba/predict interface.
+Use ONNX or TorchScript to export production-optimized inference artifacts.
+
+12) How you handle dependency management (venv, conda, poetry, requirements.txt)
+Comparative summary
+venv + requirements.txt: lightweight, widely used; lock with pip-tools (pip-compile) for reproducible installs.
+conda: great for native/C dependencies (scientific stack) and reproducible environments across platforms; environment files (environment.yml).
+poetry: modern Python packaging and dependency management with pyproject.toml and lockfile; handles virtualenvs and publishing nicely.
+Docker: deterministic runtime for production; freeze dependencies into the image.
+Recommended patterns
+For development: use poetry or pip-tools + requirements.in → requirements.txt.
+Generate a lock file for CI/production to ensure reproducible installs.
+For projects with heavy native dependencies (CUDA, MKL), provide Docker images or conda envs.
+Keep a minimal requirements.txt for deployment and dev-requirements.txt for tests and linters.
+Example pip-tools workflow
+# requirements.in
+numpy
+pandas==1.5.*
+# update lock
+pip-compile requirements.in
+# installs pinned versions into requirements.txt
+pip-sync requirements.txt
+
+Docker + lockfile for production
+Build image with pinned dependencies; CI builds the image for each release.
+Avoid installing dev dependencies in runtime image; use multi-stage builds.

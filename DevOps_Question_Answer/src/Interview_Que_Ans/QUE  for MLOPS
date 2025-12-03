@@ -86,14 +86,6 @@ How do you detect anomalies in token usage, high latency, or LLM hallucinations?
 Explain how you design SLOs/SLIs/SLA for ML/GenAI applications.
 Describe a production issue you diagnosed using observability tools. What was your debugging process?
 
-8. Python, Scripting, and Automation
-
-How do you structure Python code for ML pipelines (packages, modules, config, logging)?
-Explain how you automate recurring ML workflows using Python + Bash.
-How do you test Python ML code (pytest, mocking, CI tests, data tests)?
-How do you design reusable Python components for data preprocessing, model wrapping, and inference?
-How do you handle dependency management (venv, conda, poetry, requirements.txt)?
-
 Docker
 1. Docker Image related Command
 2. Docker file explanation
