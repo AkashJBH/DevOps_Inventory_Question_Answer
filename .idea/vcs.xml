@@ -2,5 +2,12 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/Azure-zero-to-hero" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/Jenkins-Zero-To-Hero" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/ansible-zero-to-hero" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/aws-devops-zero-to-hero" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/devops-cloud-interview-guide" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/devops-interview-preparation-guide" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/DevOps_Question_Answer/src/helm-zero-to-hero" vcs="Git" />
   </component>
 </project>

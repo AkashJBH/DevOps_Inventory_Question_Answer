@@ -1,0 +1,103 @@
+-----------------------------------------------------------
+TECHNICAL SKILLS
+-----------------------------------------------------------
+Servers
+Linux
+Windows
+
+Load Balancers
+Nginx
+Apache2
+Tomcat
+
+Open-Source Integrations
+APISIX
+Apache Superset (Dashboard)
+Rabbitmq
+Apache Spark
+
+Deployment Environment
+Docker
+Kubernetes
+CI/CD
+Jenkins
+Terraform
+
+Programming Languages
+Java
+Node.js
+HTML
+CSS
+PHP
+
+Frameworks
+Spring Boot
+CodeIgniter
+Angular
+
+Scripting
+Python
+Bash
+Shell
+PySpark
+
+Cloud
+Azure
+AWS
+Nutanix
+On-Prem
+
+Source Code Version Control
+Git
+GitLab
+GitHub
+Bitbucket
+
+Sprint / Project Management
+Jira
+Azure Board
+GitLab Issue Tracking
+
+Monitoring & Logging
+Portainer
+Grafana
+Prometheus
+Logstash
+
+Databases
+MySQL
+MSSQL
+MongoDB
+Redis
+PostgreSQL
+Apache Hive
+Delta Lake
+
+Networking
+Internet
+Intranet
+VPN
+TCP / UDP
+
+Testing
+Automation Testing
+JUnit Testing
+JMeter Testing
+
+Audit Compliance
+ISO
+CMMI-L3
+HIPAA
+
+-----------------------------------------------------------
+SOFT SKILLS
+-----------------------------------------------------------
+On-Site Working
+Collaboration & Teamwork
+Client Communication
+Problem-Solving Mindset
+Adaptability & Resilience
+Time Management & Prioritization
+Initiative & Continuous Improvement
+Systems Thinking
+Decision-Making Under Uncertainty

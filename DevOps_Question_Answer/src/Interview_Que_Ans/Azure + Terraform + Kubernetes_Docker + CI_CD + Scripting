@@ -1,7 +1,8 @@
 ☁️ Azure & Cloud Fundamentals (12 Qs)
 
 1️⃣ Q: How can you attach a subnet to a VM in Azure?
-A: A subnet is linked through the VM’s Network Interface (NIC) → configure NIC → set subnet under Virtual Network. You can reassign NIC to a different subnet if needed.
+A: A subnet is linked through the VM’s Network Interface (NIC) → configure NIC → set subnet under Virtual Network. 
+You can reassign NIC to a different subnet if needed.
 
 2️⃣ Q: How can you attach a subnet to an NSG?
 A: Go to Network Security Group → Settings → Subnets → Associate, choose the VNet & subnet.
