@@ -109,7 +109,8 @@ ________________________________________________________________________________
 3.	What is AKS. (AKS related questions)
 1. What is AKS?
 Answer:
-AKS (Azure Kubernetes Service) is a managed Kubernetes service provided by Microsoft Azure. It simplifies the process of deploying, managing, and operating Kubernetes clusters in the cloud by abstracting the complexity of the Kubernetes control plane, which is managed by Azure.
+AKS (Azure Kubernetes Service) is a managed Kubernetes service provided by Microsoft Azure. It simplifies the process of deploying, managing,
+and operating Kubernetes clusters in the cloud by abstracting the complexity of the Kubernetes control plane, which is managed by Azure.
 Key features:
 Managed control plane (Azure handles upgrades, scaling, and patches)
 Integrated with Azure Active Directory (AAD) for secure authentication
@@ -139,7 +140,8 @@ Azure Container Registry (ACR): For storing container images
 Key Vault: For managing secrets securely
 
 6. What is a node pool in AKS?
-A node pool is a group of virtual machines within an AKS cluster with the same configuration. You can have multiple node pools with different VM sizes, OS types (Linux/Windows), and scaling strategies.
+A node pool is a group of virtual machines within an AKS cluster with the same configuration.
+You can have multiple node pools with different VM sizes, OS types (Linux/Windows), and scaling strategies.
 
 7. How do you deploy an application on AKS?
 Create a Kubernetes deployment YAML file
@@ -153,7 +155,8 @@ Basic (Kubenet): Simpler, auto-assigned IPs
 Advanced (Azure CNI): Pods get IPs from VNet, enabling deeper integration with Azure networking
 
 9. What is the difference between AKS and Kubernetes?
-Kubernetes is an open-source container orchestration system. AKS is a managed service that runs Kubernetes on Azure and handles many of the infrastructure management tasks for you.
+Kubernetes is an open-source container orchestration system.
+AKS is a managed service that runs Kubernetes on Azure and handles many of the infrastructure management tasks for you.
 
 10. How do you upgrade AKS cluster components?
 Use the Azure CLI or portal to upgrade the control plane
@@ -164,7 +167,8 @@ ________________________________________________________________________________
 
 4.	Azure NSG (NW Security Group).
 ✅ What is an NSG?
-Azure Network Security Group (NSG) is a network-layer firewall used to control inbound and outbound traffic to and from Azure resources in a Virtual Network (VNet).
+Azure Network Security Group (NSG) is a network-layer firewall used to control inbound and outbound traffic to and from
+Azure resources in a Virtual Network (VNet).
 
 ✅ Where is it applied?
 At the subnet level – affects all resources in the subnet.
@@ -194,12 +198,14 @@ Apply NSGs at both subnet and NIC levels only when needed – otherwise, choose 
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 5.	What is NAT gateway?
-A NAT Gateway (Network Address Translation Gateway) is a networking service in Azure that provides outbound Internet connectivity to resources in a virtual network (VNet) without exposing them directly to the public internet.
+A NAT Gateway (Network Address Translation Gateway) is a networking service in Azure that provides outbound Internet connectivity
+to resources in a virtual network (VNet) without exposing them directly to the public internet.
 
 🔹 Interview-Ready Answer
 "A NAT Gateway in Azure is used to provide secure and scalable outbound Internet connectivity for resources in a virtual network.
-It allows private resources, such as virtual machines in a private subnet, to connect to the internet for updates or external services, without needing a public IP on each resource.
-The NAT Gateway translates private IPs to a public IP or IP prefix, ensuring consistent outbound IP addresses, improved security, and better performance."
+It allows private resources, such as virtual machines in a private subnet, to connect to the internet for updates or external services,
+without needing a public IP on each resource. The NAT Gateway translates private IPs to a public IP or IP prefix,
+ensuring consistent outbound IP addresses, improved security, and better performance."
 
 🔧 Key Points to Remember
 Purpose: Enables outbound-only internet connectivity.
@@ -316,7 +322,8 @@ Config/Data (.json, .csv)	Blob Storage, Table Storage (structured)
 
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-8.	How to setup Azure Pipeline (Access Control, Service Principal, different stages, build activities, parallel stages, Artifacts (types & how/where to store), post build activities, Agent Pool, etc)
+8.	How to setup Azure Pipeline (Access Control, Service Principal, different stages, build activities, parallel stages,
+Artifacts (types & how/where to store), post build activities, Agent Pool, etc)
 (Covering Access Control, Service Principal, stages, parallelization, artifacts, agent pools, etc.)
 1. Access Control
 Azure Pipelines uses RBAC (Role-Based Access Control).
@@ -429,7 +436,8 @@ ________________________________________________________________________________
 
 9.	How to clone a VM to another region?
 
-Cloning a Virtual Machine (VM) to another region in Azure is a common task that comes up in Azure DevOps interviews. Here's how to answer this question effectively in an interview:
+Cloning a Virtual Machine (VM) to another region in Azure is a common task that comes up in Azure DevOps interviews.
+Here's how to answer this question effectively in an interview:
 🔹 Question: How to clone a VM to another region in Azure?
 ✅ Answer:
 To clone a VM to another region in Azure, you cannot directly copy a VM across regions. Instead, you follow these high-level steps:
@@ -466,7 +474,8 @@ Infrastructure as Code tools like Terraform or ARM/Bicep
 
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-10.	How to configure Azure PL in such a way that it automatically runs the relevant build steps (Java/C#/Python/Node/etc) based on the changes made in the repo having different code?
+10.	How to configure Azure PL in such a way that it automatically runs the relevant build steps (Java/C#/Python/Node/etc)
+based on the changes made in the repo having different code?
 
 ✅ Answer
 To achieve this in Azure DevOps, we use a combination of:
@@ -486,7 +495,8 @@ Edit
 /python-app/       --> Python code
 /node-app/         --> Node.js code
 2. Detect Changed Paths
-Azure DevOps provides variables['Build.ChangesDirectory'] via Build.ChangedFiles (using REST API or with 3rd-party tasks), but natively, we use condition with the path filters using variables['Build.SourceBranch'] and template expressions.
+Azure DevOps provides variables['Build.ChangesDirectory'] via Build.ChangedFiles (using REST API or with 3rd-party tasks),
+but natively, we use condition with the path filters using variables['Build.SourceBranch'] and template expressions.
 Alternatively, use git diff to detect changes.
 
 3. Use Conditional Job Execution Based on File Changes
@@ -583,7 +593,8 @@ ________________________________________________________________________________
 
 11.	What are Deployment Groups and Releases in Azure PLs & can they be the same?
 
-In Azure DevOps, the concepts of Deployment Groups and Releases are both part of the Release Pipeline (Azure Pipelines), but they serve very different purposes.
+In Azure DevOps, the concepts of Deployment Groups and Releases are both part of the Release Pipeline (Azure Pipelines),
+but they serve very different purposes.
 Here’s how to explain them clearly in an interview:
 ✅ What are Deployment Groups?
 A Deployment Group is a collection of target machines (virtual or physical) that you want to deploy your application to.
@@ -598,7 +609,8 @@ A Release in Azure DevOps is a package of your build artifacts (output from CI) 
 You create Release Pipelines that define how and where to deploy the code.
 Each Release can go through multiple stages (e.g., Dev → QA → Production).
 It orchestrates approvals, tasks, triggers, and environments.
-Example: After a successful build of your application, a Release Pipeline takes that build and deploys it first to Dev, then QA, and finally Production — possibly using Deployment Groups or Azure environments.
+Example: After a successful build of your application, a Release Pipeline takes that build and deploys it first to Dev, then QA,
+and finally Production — possibly using Deployment Groups or Azure environments.
 
 ❓ Can Deployment Groups and Releases be the Same?
 No, they are not the same — they are complementary.
@@ -616,7 +628,8 @@ ________________________________________________________________________________
 12.	What are Deployment Slots in Azure Functions Apps/Containers?
 
 ✅ Answer:
-Deployment Slots in Azure Function Apps (and App Services, including Containers) are live app instances that you can use to deploy and test your code in a production-like environment, without affecting the live production traffic.
+Deployment Slots in Azure Function Apps (and App Services, including Containers) are live app instances that you can use to deploy
+and test your code in a production-like environment, without affecting the live production traffic.
 
 🔹 Key Features of Deployment Slots:
 Multiple Slots per Function App:
@@ -681,7 +694,8 @@ ________________________________________________________________________________
 
 14.	What are variables in Azure PLs?
 
-In the context of Azure DevOps Pipelines (PLs), variables are used to store values that can be reused throughout the pipeline definition, making the pipeline more dynamic, maintainable, and flexible.
+In the context of Azure DevOps Pipelines (PLs), variables are used to store values that can be reused throughout the pipeline definition,
+making the pipeline more dynamic, maintainable, and flexible.
 
 ✅ What are Variables in Azure Pipelines?
 Variables in Azure Pipelines are named values that can be used to:
@@ -746,10 +760,12 @@ ________________________________________________________________________________
 
 15.	What is CIDR Range and how is it calculated?
 
-understanding CIDR ranges is important for networking and cloud roles, including in Azure DevOps. Here's a clear explanation tailored for interviews:
+understanding CIDR ranges is important for networking and cloud roles, including in Azure DevOps.
+Here's a clear explanation tailored for interviews:
 
 ✅ What is a CIDR Range?
-CIDR stands for Classless Inter-Domain Routing. A CIDR range is a compact representation of an IP address and its associated subnet mask, commonly used for IP allocation and routing (especially in cloud networking like Azure VNets, subnets, NSGs, etc.).
+CIDR stands for Classless Inter-Domain Routing. A CIDR range is a compact representation of an IP address and its associated subnet mask,
+commonly used for IP allocation and routing (especially in cloud networking like Azure VNets, subnets, NSGs, etc.).
 
 🧠 Format of CIDR
 php-template
@@ -794,7 +810,8 @@ It's widely used in Azure to define virtual networks and subnets. For example, i
 Understanding CIDR is critical for planning and securing Azure network infrastructure."
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-16.	How can I restrict an Enterprise application to access resources of a particular RG? How can I make sure that my users have access to that Application only?
+16.	How can I restrict an Enterprise application to access resources of a particular RG?
+How can I make sure that my users have access to that Application only?
 
 ✅ Answer Outline
 
@@ -835,8 +852,11 @@ Talk about Azure RBAC vs Azure AD roles if relevant.
 For critical environments, mention activity logs, auditing, and access reviews.
 
 ✅ Sample Short Answer
-To restrict an Enterprise Application to access only a specific Resource Group, I would assign RBAC permissions (like Reader or Contributor) for the app’s service principal only at that RG level, and not at the subscription level.
-To ensure users can only access that application, I would assign them to the application in Azure AD under “Enterprise Applications” > “Users and Groups”, and make sure they don't have direct access to other Azure resources by reviewing their IAM roles.
+To restrict an Enterprise Application to access only a specific Resource Group, I would assign RBAC permissions (like Reader or Contributor)
+for the app’s service principal only at that RG level, and not at the subscription level.
+To ensure users can only access that application,
+I would assign them to the application in Azure AD under “Enterprise Applications” > “Users and Groups”,
+and make sure they don't have direct access to other Azure resources by reviewing their IAM roles.
 This ensures strict access control based on least privilege.
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
@@ -884,15 +904,20 @@ Trigger-based sync jobs using Bash, PowerShell, or Python scripts.
 Infrastructure deployment (Terraform/ARM templates/Ansible) for provisioning and networking.
 
 ✅ Conclusion:
-"I would ensure secure network connectivity between Azure VM and AWS EC2, then configure database-specific replication like MongoDB replica sets or PostgreSQL logical replication.
-I’d automate the sync using Azure DevOps pipelines for scheduled or triggered updates, and use monitoring tools to ensure sync health. If low-latency, real-time sync is required, I'd consider third-party tools like Kafka or SymmetricDS."
+"I would ensure secure network connectivity between Azure VM and AWS EC2,
+then configure database-specific replication like MongoDB replica sets or PostgreSQL logical replication.
+I’d automate the sync using Azure DevOps pipelines for scheduled or triggered updates,
+and use monitoring tools to ensure sync health. If low-latency, real-time sync is required,
+I'd consider third-party tools like Kafka or SymmetricDS."
 
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
 18.	Azure Data Lake.
 
 ✅ Sample Answer:
-Azure Data Lake is a highly scalable and secure data storage and analytics service designed for big data workloads. It allows users to store both structured and unstructured data at any scale. It is typically used for running analytics and processing large volumes of data.
+Azure Data Lake is a highly scalable and secure data storage and analytics service designed for big data workloads.
+It allows users to store both structured and unstructured data at any scale.
+It is typically used for running analytics and processing large volumes of data.
 Azure Data Lake comes in two generations:
 ADLS Gen1 – Older version, now deprecated.
 ADLS Gen2 – Built on top of Azure Blob Storage with added hierarchical namespace for better performance and security.
@@ -961,7 +986,9 @@ python
 Copy
 Edit
 from azure.storage.blob import BlobServiceClient
-conn_str = "DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net"
+conn_str = "DefaultEndpointsProtocol=https;AccountName=...;
+AccountKey=...;
+EndpointSuffix=core.windows.net"
 blob_service_client = BlobServiceClient.from_connection_string(conn_str)
 
 ✅ 3. Shared Access Signature (SAS) Tokens
@@ -1121,7 +1148,8 @@ ________________________________________________________________________________
 
 23.	LRS, GRS, ZRS, GZRS
 
-The interview question you've shared — LRS, GRS, ZRS, GZRS — refers to Azure Storage replication options. This is a common Azure DevOps or Azure Infrastructure-related interview topic. Here's a breakdown of each acronym and their key differences:
+The interview question you've shared — LRS, GRS, ZRS, GZRS — refers to Azure Storage replication options.
+This is a common Azure DevOps or Azure Infrastructure-related interview topic. Here's a breakdown of each acronym and their key differences:
 
 🔁 Azure Storage Replication Types
 Azure provides multiple redundancy options to ensure data durability and high availability. The types include:
@@ -1203,7 +1231,8 @@ ________________________________________________________________________________
 
 25.	What are Quality gates in Azure DevOps Pipelines?
 
-Quality Gates in Azure DevOps Pipelines are a set of predefined conditions or checks that must be met before a build or release can proceed to the next stage.
+Quality Gates in Azure DevOps Pipelines are a set of predefined conditions or checks
+that must be met before a build or release can proceed to the next stage.
 They help ensure code quality, security, and compliance by enforcing standards automatically during the CI/CD process.
 
 ✅ In an Interview, you can answer like this:
@@ -1227,12 +1256,16 @@ ________________________________________________________________________________
 
 26.	What is a Release Pipeline in Azure DevOps?
 
-A Release Pipeline in Azure DevOps is a process used to automate the deployment of applications to various environments such as development, testing, staging, and production.
+A Release Pipeline in Azure DevOps is a process used to automate the deployment of applications to various environments such as development,
+testing, staging, and production.
 ✅ Key Points to Mention in an Interview:
 Here’s a concise and professional answer you can use:
 
-"A Release Pipeline in Azure DevOps is a part of the Continuous Deployment (CD) process that automates the delivery of software to different environments.
-It defines the workflow for releasing applications, including the stages (like Dev, QA, UAT, and Production), the tasks to be performed at each stage (such as deploying artifacts, running scripts, or performing tests), and the approvals or gates required to move forward.
+"A Release Pipeline in Azure DevOps is a part of the Continuous Deployment (CD) process that automates
+the delivery of software to different environments.
+It defines the workflow for releasing applications, including the stages (like Dev, QA, UAT, and Production),
+the tasks to be performed at each stage (such as deploying artifacts, running scripts, or performing tests),
+and the approvals or gates required to move forward.
 This helps ensure consistent, repeatable, and traceable deployments."
 
 🛠 Components of a Release Pipeline:
@@ -1246,9 +1279,12 @@ Variables – Used to manage configuration settings dynamically.
 
 _____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 
-27.	Write Azure PL to deploy multiple VMs with different regions, SKUs, etc. It should be created with terraform and should be deployed via a single TF apply.
+27.	Write Azure PL to deploy multiple VMs with different regions, SKUs, etc.
+It should be created with terraform and should be deployed via a single TF apply.
 
-This Azure DevOps interview question is testing your knowledge of Terraform, Azure Provider, and your ability to write parameterized infrastructure code that can provision multiple VMs across different regions, VM sizes (SKUs), etc., all in a single terraform apply.
+This Azure DevOps interview question is testing your knowledge of Terraform, Azure Provider,
+and your ability to write parameterized infrastructure code that can provision multiple VMs across different regions, VM sizes (SKUs), etc.,
+all in a single terraform apply.
 
 Below is a complete Terraform configuration that meets these requirements:
 
@@ -1404,7 +1440,8 @@ ________________________________________________________________________________
 That's a great Azure DevOps interview question. Here's how you can automatically monitor multiple Azure Functions—a topic that touches on observability, automation, and DevOps best practices:
 
 ✅ Answer (Structured for Interview)
-To monitor multiple Azure Functions automatically, you can use a combination of Azure-native monitoring tools, automation scripts, and integration with Azure DevOps. Here's how:
+To monitor multiple Azure Functions automatically, you can use a combination of Azure-native monitoring tools, automation scripts,
+and integration with Azure DevOps. Here's how:
 
 1. Use Azure Application Insights
 Built-in Integration: Azure Functions have built-in integration with Application Insights.

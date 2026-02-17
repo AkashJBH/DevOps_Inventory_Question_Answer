@@ -8,10 +8,12 @@ You can reassign NIC to a different subnet if needed.
 A: Go to Network Security Group → Settings → Subnets → Associate, choose the VNet & subnet.
 
 3️⃣ Q: What is AKS?
-A: Azure Kubernetes Service – a managed Kubernetes platform that automates node provisioning, scaling, upgrades, and integrates with Azure Monitor, ACR, and AD for authentication.
+A: Azure Kubernetes Service – a managed Kubernetes platform that automates node provisioning, scaling, upgrades,
+and integrates with Azure Monitor, ACR, and AD for authentication.
 
 4️⃣ Q: What is an NSG?
-A: Network Security Group filters inbound/outbound traffic for subnets or NICs using security rules (based on IP, port, protocol, priority).
+A: Network Security Group filters inbound/outbound traffic for subnets or NICs using security rules
+(based on IP, port, protocol, priority).
 
 5️⃣ Q: What is a NAT Gateway?
 A: Provides outbound internet access for private subnets using a single static public IP without exposing internal resources.
@@ -66,7 +68,6 @@ A: Used to create multiple instances of a resource dynamically.
 count = 3
 name  = "vm-${count.index}"
 
-
 18️⃣ Q: How to conditionally update or skip resource based on tag?
 A: Use count or for_each with condition, or lifecycle { ignore_changes = [...] }.
 
@@ -91,7 +92,8 @@ A: Use Managed Identity or Service Principal + environment variables / Azure CLI
 🐳 Docker & Kubernetes (AKS) (10 Qs)
 
 25️⃣ Q: What is a volume in Docker/K8s?
-A: Persistent storage attached to containers or pods; in K8s defined via PersistentVolume (PV) and PersistentVolumeClaim (PVC).
+A: Persistent storage attached to containers or pods; in K8s defined via PersistentVolume (PV) and
+PersistentVolumeClaim (PVC).
 
 26️⃣ Q: What are Namespaces in K8s?
 A: Logical clusters for resource isolation within a physical cluster.
